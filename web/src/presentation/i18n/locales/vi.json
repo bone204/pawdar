@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "Pawdar",
+    "loading": "Đang tải...",
+    "submit": "Xác nhận",
+    "cancel": "Hủy",
+    "logout": "Đăng Xuất"
+  },
+  "landing": {
+    "title": "Chào mừng đến với Pawdar",
+    "subtitle": "Ứng dụng đồng hành tuyệt vời cho cuộc sống và sức khỏe thú cưng của bạn.",
+    "ctaStart": "Bắt Đầu Ngay",
+    "ctaLogin": "Đăng Nhập",
+    "featuresTitle": "Tại sao nên chọn Pawdar?",
+    "feature1Title": "Theo Dõi Sức Khỏe",
+    "feature1Desc": "Theo dõi tiêm phòng, lịch khám sức khỏe và chế độ dinh dưỡng dễ dàng.",
+    "feature2Title": "Cộng Đồng Thú Cưng",
+    "feature2Desc": "Kết nối với chủ thú cưng địa phương, bác sĩ thú y và những người yêu thích thú cưng gần bạn.",
+    "feature3Title": "Nhắc Nhở Thông Minh",
+    "feature3Desc": "Không bao giờ bỏ lỡ lịch hẹn bác sĩ thú y hoặc giờ ăn của thú cưng.",
+    "footer": "© 2026 Pawdar. Bảo lưu mọi quyền."
+  },
+  "auth": {
+    "login": "Đăng Nhập",
+    "register": "Đăng Ký",
+    "emailLabel": "Địa chỉ Email",
+    "emailPlaceholder": "Nhập email của bạn",
+    "passwordLabel": "Mật khẩu",
+    "passwordPlaceholder": "Nhập mật khẩu của bạn",
+    "nameLabel": "Họ và Tên",
+    "namePlaceholder": "Nhập họ và tên của bạn",
+    "confirmPasswordLabel": "Xác nhận mật khẩu",
+    "confirmPasswordPlaceholder": "Nhập lại mật khẩu của bạn",
+    "noAccount": "Chưa có tài khoản?",
+    "haveAccount": "Đã có tài khoản?",
+    "forgotPassword": "Quên mật khẩu?",
+    "validation": {
+      "required": "Trường này là bắt buộc",
+      "invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ",
+      "passwordLength": "Mật khẩu phải dài ít nhất 6 ký tự",
+      "passwordMismatch": "Mật khẩu xác nhận không khớp"
+    }
+  },
+  "main": {
+    "dashboard": "Bảng Điều Khiển",
+    "welcome": "Chào mừng bạn quay trở lại",
+    "statsTitle": "Tổng Quan Chỉ Số Thú Cưng",
+    "activePets": "Thú Cưng Đang Nuôi",
+    "appointments": "Lịch Hẹn Sắp Tới",
+    "healthScore": "Điểm Sức Khỏe Trung Bình",
+    "recentActivity": "Hoạt Động Thú Cưng Gần Đây",
+    "activity1": "Bella đã hoàn thành tiêm chủng định kỳ",
+    "activity2": "Lịch kiểm tra răng của Max đã được lên kế hoạch",
+    "activity3": "Coco đã cập nhật thực đơn dinh dưỡng mới"
+  }
+}

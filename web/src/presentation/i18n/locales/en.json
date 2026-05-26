@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "Pawdar",
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "logout": "Log Out"
+  },
+  "landing": {
+    "title": "Welcome to Pawdar",
+    "subtitle": "The ultimate companion app for your pet's life and health.",
+    "ctaStart": "Get Started",
+    "ctaLogin": "Log In",
+    "featuresTitle": "Why Choose Pawdar?",
+    "feature1Title": "Health Tracking",
+    "feature1Desc": "Monitor vaccinations, check-ups, and dietary habits effortlessly.",
+    "feature2Title": "Pet Community",
+    "feature2Desc": "Connect with local pet owners, vets, and pet enthusiasts near you.",
+    "feature3Title": "Smart Reminders",
+    "feature3Desc": "Never miss a vet visit or feeding schedule again.",
+    "footer": "© 2026 Pawdar. All rights reserved."
+  },
+  "auth": {
+    "login": "Log In",
+    "register": "Register",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "Enter your full name",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "forgotPassword": "Forgot Password?",
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "passwordLength": "Password must be at least 6 characters long",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "main": {
+    "dashboard": "Dashboard",
+    "welcome": "Welcome back",
+    "statsTitle": "Pet Statistics Overview",
+    "activePets": "Active Pets",
+    "appointments": "Upcoming Appointments",
+    "healthScore": "Average Health Score",
+    "recentActivity": "Recent Pet Activity",
+    "activity1": "Bella's vaccination completed",
+    "activity2": "Max's dental checkup scheduled",
+    "activity3": "Coco's nutrition plan updated"
+  }
+}
