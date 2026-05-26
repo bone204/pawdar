@@ -4,7 +4,12 @@
     "loading": "Đang tải...",
     "submit": "Xác nhận",
     "cancel": "Hủy",
-    "logout": "Đăng Xuất"
+    "logout": "Đăng Xuất",
+    "navServices": "Dịch vụ",
+    "navReviews": "Đánh giá",
+    "navNews": "Tin tức",
+    "langVi": "Tiếng Việt",
+    "langEn": "Tiếng Anh"
   },
   "landing": {
     "title": "Chào mừng đến với Pawdar",

@@ -4,7 +4,12 @@
     "loading": "Loading...",
     "submit": "Submit",
     "cancel": "Cancel",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "navServices": "Services",
+    "navReviews": "Reviews",
+    "navNews": "News",
+    "langVi": "Vietnamese",
+    "langEn": "English"
   },
   "landing": {
     "title": "Welcome to Pawdar",

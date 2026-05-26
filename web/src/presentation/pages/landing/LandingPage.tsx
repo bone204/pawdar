@@ -1,37 +1,20 @@
 "use client";
-
+ 
 import React from "react";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Button } from "@/presentation/components/ui/Button";
-import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher";
-import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
+import { Header } from "@/presentation/components/Header";
 import Link from "next/link";
-
+ 
 export const LandingPage: React.FC = () => {
   const { t } = useTranslation();
-
+ 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-background/70 border-b border-border transition-colors duration-300 select-none">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black bg-linear-to-r from-primary to-amber-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 cursor-pointer">
-            🐶 {t("common.appName")}
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            <LanguageSwitcher />
-            <ThemeToggle />
-            <Link href="/login" className="cursor-pointer">
-              <Button variant="secondary" size="sm" className="cursor-pointer select-none">
-                {t("auth.login")}
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
-      <main className="grow">
+      <main className="grow pt-20">
         {/* Modern Hero Section */}
         <section className="relative overflow-hidden py-24 lg:py-32 bg-radial from-primary/5 via-transparent to-transparent select-none">
           <div className="container mx-auto px-6 text-center flex flex-col items-center gap-8 relative z-10">
