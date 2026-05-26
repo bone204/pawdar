@@ -112,6 +112,7 @@ Source code must be strictly organized into layers under `src/`:
 
 ### 4. UI & Styling Standards
 *   **Tailwind CSS:** Use Tailwind for styling. Declare variables for colors and effects in the global stylesheet and apply them uniformly via utility classes.
+*   **Design Tokens & Font Consistency:** Any new UI components or pages created **must** strictly adhere to the established "Honey Oak & Sweet Cream" wood theme CSS variables defined in `globals.css` (e.g. `var(--primary)`, `var(--background)`, `var(--foreground)`, `var(--border)`, `var(--success)`) and **must** use the configured `Merriweather` serif font (`var(--font-merriweather)`). Do **not** hardcode arbitrary color hexes, default Tailwind colors (e.g. indigo, blue, emerald), or default Geist/sans-serif fonts, to prevent style and font mismatches.
 *   **i18n (Multi-Language):** Never hardcode strings directly in the UI. Use locales files and import translations dynamically via the localization hook.
 *   **Form Validation:** Use React Hook Form with Zod (or equivalent schemas) for robust input validation and clean error styling.
 *   **Section Layout Standard:** Any section created in the layout must use the standard Tailwind `container` utility class with appropriate padding (e.g., `container mx-auto px-4` or `px-6`) to keep the content aligned, unified, and fully responsive.

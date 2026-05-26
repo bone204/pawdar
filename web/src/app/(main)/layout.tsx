@@ -35,7 +35,7 @@ export default function MainLayout({
             <Link href="/" className="flex items-center gap-2 select-none">
               <span className="text-2xl">🐶</span>
               {isSidebarOpen && (
-                <span className="font-black text-lg bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
+                <span className="font-black text-lg bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">
                   {t("common.appName")}
                 </span>
               )}
@@ -85,7 +85,7 @@ export default function MainLayout({
             <ThemeToggle />
             
             {/* User Initials Badge */}
-            <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-[0_4px_12px_rgba(99,102,241,0.2)] select-none">
+            <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-[0_4px_12px_rgba(217,106,38,0.2)] select-none">
               PT
             </div>
           </div>

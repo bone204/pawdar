@@ -1,48 +1,48 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fdfdfd;
-  --foreground: #0f172a;
+  --background: #FCFAF7;
+  --foreground: #3E2E25;
   
-  --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card: #FFFFFF;
+  --card-foreground: #3E2E25;
   
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
+  --primary: #C96D2E;
+  --primary-foreground: #FFFFFF;
   
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
+  --secondary: #F5EFE6;
+  --secondary-foreground: #3E2E25;
   
-  --muted: #64748b;
-  --muted-foreground: #f1f5f9;
+  --muted: #A89587;
+  --muted-foreground: #FCFAF7;
   
-  --border: #e2e8f0;
-  --input: #f8fafc;
-  --ring: rgba(99, 102, 241, 0.2);
+  --border: #EDE5DC;
+  --input: #FCFAF7;
+  --ring: rgba(201, 109, 46, 0.2);
   
-  --success: #10b981;
-  --danger: #ef4444;
+  --success: #6B7F62;
+  --danger: #BF5436;
 }
 
 .dark {
-  --background: #0b0f19;
-  --foreground: #f8fafc;
+  --background: #221711;
+  --foreground: #F5EFE6;
   
-  --card: #151c2c;
-  --card-foreground: #f8fafc;
+  --card: #2D201A;
+  --card-foreground: #F5EFE6;
   
-  --primary: #818cf8;
-  --primary-foreground: #0b0f19;
+  --primary: #EAA85E;
+  --primary-foreground: #221711;
   
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
+  --secondary: #3A2C24;
+  --secondary-foreground: #F5EFE6;
   
-  --muted: #94a3b8;
-  --muted-foreground: #1e293b;
+  --muted: #B3A194;
+  --muted-foreground: #3A2C24;
   
-  --border: #334155;
-  --input: #1e293b;
-  --ring: rgba(129, 140, 248, 0.3);
+  --border: #4C3A30;
+  --input: #3A2C24;
+  --ring: rgba(234, 168, 94, 0.3);
 }
 
 @theme inline {
@@ -59,13 +59,13 @@
   --color-success: var(--success);
   --color-danger: var(--danger);
   
-  --font-sans: var(--font-geist-sans), sans-serif;
+  --font-sans: var(--font-merriweather), serif;
   --font-mono: var(--font-geist-mono), monospace;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: var(--font-merriweather), serif;
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }

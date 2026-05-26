@@ -35,7 +35,7 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="flex flex-col gap-8 w-full select-none">
       {/* Welcome Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 bg-gradient-to-r from-primary to-indigo-600 rounded-3xl text-white shadow-lg">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 bg-gradient-to-r from-primary to-amber-600 rounded-3xl text-white shadow-lg">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">
             {t("main.welcome")}, {userName}! 👋
@@ -47,7 +47,7 @@ export const DashboardPage: React.FC = () => {
         <div className="shrink-0">
           <Button
             onClick={_onLogoutPressed}
-            variant="ghost"
+            variant="secondary"
             className="bg-white/10 text-white hover:bg-white/20 border border-white/20 px-5 py-2.5 rounded-xl font-bold"
           >
             {t("common.logout")} 🚪
@@ -71,14 +71,14 @@ export const DashboardPage: React.FC = () => {
           <div className="bg-card border border-border p-6 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.01)] flex flex-col gap-4">
             <div className="text-2xl font-bold">📅</div>
             <div className="text-sm text-muted font-medium">{t("main.appointments")}</div>
-            <div className="text-3xl font-black text-indigo-500">2</div>
+            <div className="text-3xl font-black text-primary">2</div>
           </div>
 
           {/* Card 3 */}
           <div className="bg-card border border-border p-6 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.01)] flex flex-col gap-4">
             <div className="text-2xl font-bold">💖</div>
             <div className="text-sm text-muted font-medium">{t("main.healthScore")}</div>
-            <div className="text-3xl font-black text-emerald-500">96%</div>
+            <div className="text-3xl font-black text-success">96%</div>
           </div>
         </div>
       </div>
@@ -90,7 +90,7 @@ export const DashboardPage: React.FC = () => {
         <div className="flex flex-col gap-4">
           {/* Activity 1 */}
           <div className="flex items-center gap-4 p-4 hover:bg-secondary/40 rounded-xl transition-colors duration-300">
-            <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-lg flex items-center justify-center font-bold">
+            <div className="w-10 h-10 bg-success/10 text-success rounded-lg flex items-center justify-center font-bold">
               💉
             </div>
             <div className="text-sm font-medium text-foreground">
@@ -100,7 +100,7 @@ export const DashboardPage: React.FC = () => {
 
           {/* Activity 2 */}
           <div className="flex items-center gap-4 p-4 hover:bg-secondary/40 rounded-xl transition-colors duration-300">
-            <div className="w-10 h-10 bg-indigo-500/10 text-indigo-500 rounded-lg flex items-center justify-center font-bold">
+            <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center font-bold">
               🦷
             </div>
             <div className="text-sm font-medium text-foreground">

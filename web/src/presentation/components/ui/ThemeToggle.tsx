@@ -20,7 +20,7 @@ export const ThemeToggle: React.FC = () => {
           viewBox="0 0 24 24"
           strokeWidth="2"
           stroke="currentColor"
-          className="w-5 h-5 text-indigo-600"
+          className="w-5 h-5 text-primary"
         >
           <path
             strokeLinecap="round"

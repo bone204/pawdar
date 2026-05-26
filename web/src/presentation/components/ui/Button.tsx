@@ -3,7 +3,7 @@
 import React from "react";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
+  variant?: "primary" | "secondary";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
 }
@@ -18,14 +18,11 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyle =
-    "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]";
+    "inline-flex items-center justify-center font-bold tracking-wide rounded-2xl select-none cursor-pointer transition-all duration-300 ease-out focus:outline-none focus:ring-4 focus:ring-primary/25 disabled:opacity-50 disabled:pointer-events-none hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]";
 
   const variants = {
-    primary: "bg-primary text-primary-foreground hover:shadow-[0_8px_20px_rgba(99,102,241,0.3)] hover:brightness-110",
-    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-    outline: "border-2 border-border bg-transparent text-foreground hover:border-primary hover:text-primary hover:bg-primary/5",
-    ghost: "bg-transparent text-foreground hover:bg-secondary",
-    danger: "bg-danger text-white hover:shadow-[0_8px_20px_rgba(239,68,68,0.3)] hover:brightness-110",
+    primary: "bg-primary text-primary-foreground hover:brightness-105 active:brightness-95 hover:shadow-[0_6px_16px_rgba(201,109,46,0.2)] dark:hover:shadow-[0_6px_16px_rgba(234,168,94,0.25)] border border-primary/10",
+    secondary: "border-2 border-primary bg-transparent text-primary hover:bg-primary/5 active:bg-primary/10",
   };
 
   const sizes = {
