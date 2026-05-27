@@ -9,7 +9,7 @@ export const ThemeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2.5 bg-secondary text-foreground rounded-xl border border-border transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/40 flex items-center justify-center cursor-pointer"
+      className="w-11 h-11 bg-secondary text-foreground rounded-full border border-border transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 flex items-center justify-center cursor-pointer"
       aria-label="Toggle Theme"
     >
       {theme === "light" ? (

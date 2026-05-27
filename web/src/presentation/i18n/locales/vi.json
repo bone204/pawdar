@@ -4,7 +4,12 @@
     "loading": "Đang tải...",
     "submit": "Xác nhận",
     "cancel": "Hủy",
-    "logout": "Đăng Xuất"
+    "logout": "Đăng Xuất",
+    "navServices": "Dịch vụ",
+    "navReviews": "Đánh giá",
+    "navNews": "Tin tức",
+    "langVi": "Tiếng Việt",
+    "langEn": "Tiếng Anh"
   },
   "landing": {
     "title": "Chào mừng đến với Pawdar",
@@ -18,6 +23,11 @@
     "feature2Desc": "Kết nối với chủ thú cưng địa phương, bác sĩ thú y và những người yêu thích thú cưng gần bạn.",
     "feature3Title": "Nhắc Nhở Thông Minh",
     "feature3Desc": "Không bao giờ bỏ lỡ lịch hẹn bác sĩ thú y hoặc giờ ăn của thú cưng.",
+    "contactInfo": "Thông Tin Liên Hệ",
+    "techStack": "Công Nghệ Phát Triển",
+    "quickLinks": "Liên kết",
+    "explore": "Khám phá",
+    "mobileApp": "Ứng dụng di động",
     "footer": "© 2026 Pawdar. Bảo lưu mọi quyền."
   },
   "auth": {

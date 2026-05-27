@@ -35,7 +35,7 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="flex flex-col gap-8 w-full select-none">
       {/* Welcome Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 bg-gradient-to-r from-primary to-amber-600 rounded-3xl text-white shadow-lg">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 bg-linear-to-r from-primary to-amber-600 rounded-3xl text-white shadow-lg">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">
             {t("main.welcome")}, {userName}! 👋
