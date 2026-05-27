@@ -2,49 +2,20 @@
  
 import React from "react";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
-import { Button } from "@/presentation/components/ui/Button";
 import { Header } from "@/presentation/components/Header";
 import { Footer } from "@/presentation/components/Footer";
-import Link from "next/link";
+import { HeroSection } from "@/presentation/pages/landing/sections/HeroSection";
  
 export const LandingPage: React.FC = () => {
   const { t } = useTranslation();
- 
+  
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-
+ 
       {/* Main Content */}
       <main className="grow pt-20">
-        {/* Modern Hero Section */}
-        <section className="relative overflow-hidden py-24 lg:py-32 bg-radial from-primary/5 via-transparent to-transparent select-none">
-          <div className="container mx-auto px-6 text-center flex flex-col items-center gap-8 relative z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider animate-bounce select-none">
-              🐾 New companionship awaits
-            </div>
-            
-            <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-none text-foreground select-none">
-              {t("landing.title")}
-            </h1>
-            
-            <p className="text-lg lg:text-xl text-muted max-w-2xl font-light select-none">
-              {t("landing.subtitle")}
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full sm:w-auto">
-              <Link href="/register" className="cursor-pointer">
-                <Button size="lg" className="w-full sm:w-auto cursor-pointer select-none">
-                  {t("landing.ctaStart")}
-                </Button>
-              </Link>
-              <Link href="/login" className="cursor-pointer">
-                <Button variant="secondary" size="lg" className="w-full sm:w-auto cursor-pointer select-none">
-                  {t("landing.ctaLogin")}
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
+        <HeroSection />
 
         <section className="py-20 bg-secondary/30 transition-colors duration-300 select-none">
           <div className="container mx-auto px-6">

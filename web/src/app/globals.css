@@ -69,3 +69,37 @@ body {
   font-family: var(--font-merriweather), serif;
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
+
+/* Common Hero Typography & Design Tokens */
+.hero-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+  animation: bounce 2s infinite;
+}
+
+.hero-title {
+  font-family: var(--font-merriweather), serif;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  transition: color 0.3s ease;
+}
+
+.hero-desc {
+  font-family: var(--font-merriweather), serif;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--muted);
+  transition: color 0.3s ease;
+}
