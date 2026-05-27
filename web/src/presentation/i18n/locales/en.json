@@ -23,6 +23,11 @@
     "feature2Desc": "Connect with local pet owners, vets, and pet enthusiasts near you.",
     "feature3Title": "Smart Reminders",
     "feature3Desc": "Never miss a vet visit or feeding schedule again.",
+    "contactInfo": "Contact Info",
+    "techStack": "Tech Stack",
+    "quickLinks": "Quick Links",
+    "explore": "Explore",
+    "mobileApp": "Mobile App",
     "footer": "© 2026 Pawdar. All rights reserved."
   },
   "auth": {

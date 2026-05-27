@@ -4,6 +4,7 @@ import React from "react";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Button } from "@/presentation/components/ui/Button";
 import { Header } from "@/presentation/components/Header";
+import { Footer } from "@/presentation/components/Footer";
 import Link from "next/link";
  
 export const LandingPage: React.FC = () => {
@@ -83,15 +84,7 @@ export const LandingPage: React.FC = () => {
         </section>
       </main>
 
-      <footer className="py-8 bg-background border-t border-border transition-colors duration-300 text-center text-xs text-muted select-none">
-        <div className="container mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
-          <div>{t("landing.footer")}</div>
-          <div className="flex gap-4 select-none">
-            <span className="hover:text-foreground cursor-pointer select-none">Privacy Policy</span>
-            <span className="hover:text-foreground cursor-pointer select-none">Terms of Service</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
