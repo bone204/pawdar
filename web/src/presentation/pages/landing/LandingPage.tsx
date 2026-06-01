@@ -5,6 +5,7 @@ import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Header } from "@/presentation/components/Header";
 import { Footer } from "@/presentation/components/Footer";
 import { HeroSection } from "@/presentation/pages/landing/sections/HeroSection";
+import { StatsSection } from "@/presentation/pages/landing/sections/StatsSection";
  
 export const LandingPage: React.FC = () => {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ export const LandingPage: React.FC = () => {
       {/* Main Content */}
       <main className="grow pt-20">
         <HeroSection />
+        <StatsSection />
 
         <section className="py-20 bg-secondary/30 transition-colors duration-300 select-none">
           <div className="container mx-auto px-6">
