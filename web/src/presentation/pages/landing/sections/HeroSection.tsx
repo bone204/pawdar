@@ -20,7 +20,7 @@ export const HeroSection: React.FC = () => {
   }, []);
 
   return (
-    <section className="relative min-h-screen overflow-hidden py-20 lg:py-32 bg-radial from-primary/5 via-transparent to-transparent select-none">
+    <section className="relative min-h-[calc(100vh-80px)] overflow-hidden py-12 lg:py-20 flex items-center bg-radial from-primary/5 via-transparent to-transparent select-none">
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-12 xl:gap-20 items-center">

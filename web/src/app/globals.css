@@ -103,3 +103,83 @@ body {
   color: var(--muted);
   transition: color 0.3s ease;
 }
+
+/* Common Section Typography & Design Tokens */
+.section-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.section-title {
+  font-family: var(--font-merriweather), serif;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--foreground);
+  transition: color 0.3s ease;
+}
+
+.section-desc {
+  font-family: var(--font-merriweather), serif;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--muted);
+  transition: color 0.3s ease;
+}
+
+/* Centered Section Styling */
+.section-center-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 42rem; /* 672px / max-w-2xl */
+  margin-bottom: 4rem; /* mb-16 */
+}
+
+/* Custom Leaflet Styling */
+.leaflet-container {
+  background: transparent !important;
+}
+
+.leaflet-tile {
+  filter: saturate(0.8) contrast(1.02) brightness(1.02);
+  transition: filter 0.3s ease;
+}
+
+.dark .leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.2) saturate(0.7);
+}
+
+.custom-leaflet-tooltip {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -6px rgba(0, 0, 0, 0.15) !important;
+  padding: 0.85rem !important;
+  color: var(--foreground) !important;
+  font-family: var(--font-sans) !important;
+  border-width: 1px !important;
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: var(--border) !important;
+}
+
+.custom-marker-icon {
+  background: none !important;
+  border: none !important;
+  pointer-events: auto !important;
+}

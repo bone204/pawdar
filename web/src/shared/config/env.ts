@@ -18,4 +18,12 @@ export const env = {
   isClientSide,
   isDev,
   appName: requireEnv(process.env.NEXT_PUBLIC_APP_NAME, "Pawdar"),
+  catApiKey: requireEnv(
+    process.env.NEXT_PUBLIC_CAT_API_KEY || process.env.CAT_API_KEY,
+    "",
+  ),
+  dogApiKey: requireEnv(
+    process.env.NEXT_PUBLIC_DOG_API_KEY || process.env.DOG_API_KEY,
+    "",
+  ),
 } as const;

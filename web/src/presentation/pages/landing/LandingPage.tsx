@@ -6,6 +6,8 @@ import { Header } from "@/presentation/components/Header";
 import { Footer } from "@/presentation/components/Footer";
 import { HeroSection } from "@/presentation/pages/landing/sections/HeroSection";
 import { StatsSection } from "@/presentation/pages/landing/sections/StatsSection";
+import { RadarShowcaseSection } from "@/presentation/pages/landing/sections/RadarShowcaseSection";
+import { ShowcaseVideoSection } from "@/presentation/pages/landing/sections/ShowcaseVideoSection";
  
 export const LandingPage: React.FC = () => {
   const { t } = useTranslation();
@@ -18,6 +20,8 @@ export const LandingPage: React.FC = () => {
       <main className="grow pt-20">
         <HeroSection />
         <StatsSection />
+        <RadarShowcaseSection />
+        <ShowcaseVideoSection />
 
         <section className="py-20 bg-secondary/30 transition-colors duration-300 select-none">
           <div className="container mx-auto px-6">
