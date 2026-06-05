@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import RotatingText from "@/presentation/components/ui/rotating-text";
+import { SOCIAL_LINKS, CONTACT_LINKS } from "@/shared/constants/links";
 
 export const Footer: React.FC = () => {
   const { t } = useTranslation();
@@ -55,7 +56,7 @@ export const Footer: React.FC = () => {
                 <div className="flex flex-col gap-3 max-w-md mx-auto md:mx-0">
                   {/* Email Card */}
                   <a
-                    href="mailto:truongbmt4@gmail.com"
+                    href={CONTACT_LINKS.mailTo}
                     className="group flex items-center gap-4 p-3.5 rounded-2xl bg-card/30 border border-border/40 hover:border-primary/30 hover:bg-card/70 shadow-xs hover:shadow-md transition-all duration-300 select-none cursor-pointer text-left"
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform duration-300">
@@ -69,7 +70,7 @@ export const Footer: React.FC = () => {
                         Email
                       </span>
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                        truongbmt4@gmail.com
+                        {CONTACT_LINKS.email}
                       </span>
                     </div>
                   </a>
@@ -163,6 +164,35 @@ export const Footer: React.FC = () => {
                       {tech}
                     </span>
                   ))}
+                </div>
+              </div>
+
+              {/* Social Connect */}
+              <div className="space-y-4 w-full lg:max-w-xs">
+                <h4 className="text-[13px] font-bold text-muted uppercase tracking-wider text-center md:text-left lg:text-right">
+                  {t("landing.socialLinks")}
+                </h4>
+                <div className="flex gap-3 justify-center md:justify-start lg:justify-end">
+                  <a
+                    href={SOCIAL_LINKS.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex h-10 w-10 items-center justify-center rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-primary/10 text-muted hover:text-primary transition-all duration-300 shadow-xs cursor-pointer"
+                  >
+                    <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" />
+                    </svg>
+                  </a>
+                  <a
+                    href={SOCIAL_LINKS.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex h-10 w-10 items-center justify-center rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-primary/10 text-muted hover:text-primary transition-all duration-300 shadow-xs cursor-pointer"
+                  >
+                    <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.577.688.479C19.138 20.162 22 16.418 22 12c0-5.523-4.48-10-10-10z" />
+                    </svg>
+                  </a>
                 </div>
               </div>
             </div>
