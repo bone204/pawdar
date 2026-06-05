@@ -45,7 +45,7 @@ export const ShowcaseVideoSection: React.FC = () => {
             opacity: opacity,
             borderRadius: borderRadius,
           }}
-          className="relative w-full aspect-[16/9] overflow-hidden shadow-2xl border border-border/30 dark:border-border/10 bg-secondary/20 flex items-center justify-center"
+          className="relative w-full aspect-video overflow-hidden shadow-2xl border border-border/30 dark:border-border/10 bg-secondary/20 flex items-center justify-center"
         >
           <video 
             src={VIDEOS.showcase}
@@ -56,7 +56,7 @@ export const ShowcaseVideoSection: React.FC = () => {
             className="w-full h-full object-cover"
           />
           {/* Subtle vignette/gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10 pointer-events-none" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/45 via-transparent to-black/10 pointer-events-none" />
         </motion.div>
       </div>
     </section>
