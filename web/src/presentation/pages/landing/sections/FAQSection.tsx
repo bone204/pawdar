@@ -69,6 +69,22 @@ export const FAQSection: React.FC = () => {
       qKey: "faqQ4",
       aKey: "faqA4",
     },
+    {
+      qKey: "faqQ5",
+      aKey: "faqA5",
+    },
+    {
+      qKey: "faqQ6",
+      aKey: "faqA6",
+    },
+    {
+      qKey: "faqQ7",
+      aKey: "faqA7",
+    },
+    {
+      qKey: "faqQ8",
+      aKey: "faqA8",
+    },
   ];
 
   const handleToggle = (index: number) => {

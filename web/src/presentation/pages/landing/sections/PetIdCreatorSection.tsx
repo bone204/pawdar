@@ -5,7 +5,9 @@ import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Select } from "@/presentation/components/ui/Select";
 import { NumberInput } from "@/presentation/components/ui/NumberInput";
+import { Button } from "@/presentation/components/ui/Button";
 import { DOG_BREEDS, CAT_BREEDS } from "@/shared/constants/breeds";
+import { toPng } from "html-to-image";
 
 const FakeQRCode: React.FC<{ className?: string }> = ({ className = "" }) => (
   <div className={`bg-white p-1 rounded-lg border border-neutral-200 dark:border-neutral-700 shrink-0 shadow-xs ${className}`}>
@@ -38,6 +40,7 @@ export const PetIdCreatorSection: React.FC = () => {
   const [petWeight, setPetWeight] = useState<number>(5);
   const [petAge, setPetAge] = useState<number>(3);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // References for 3D card tilt animation
   const cardRef = useRef<HTMLDivElement>(null);
@@ -76,6 +79,63 @@ export const PetIdCreatorSection: React.FC = () => {
         setUploadedImage(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!cardRef.current) return;
+    setIsDownloading(true);
+    try {
+      // Temporarily reset 3D rotation to ensure flat capture
+      const originalX = x.get();
+      const originalY = y.get();
+      x.set(0);
+      y.set(0);
+
+      // Wait a short moment for Framer Motion spring to fully settle back to 0
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // Detect active theme
+      const isDark = document.documentElement.classList.contains("dark");
+
+      const width = cardRef.current.offsetWidth;
+      const height = cardRef.current.offsetHeight;
+
+      const dataUrl = await toPng(cardRef.current, {
+        backgroundColor: "transparent",
+        width: width * 3,
+        height: height * 3,
+        style: {
+          transform: "scale(3)",
+          transformOrigin: "top left",
+          width: width + "px",
+          height: height + "px",
+          transformStyle: "flat",
+          // Force inject CSS variables so they resolve inside the isolated clone scope
+          "--card": isDark ? "#2D201A" : "#FFFFFF",
+          "--foreground": isDark ? "#F5EFE6" : "#3E2E25",
+          "--border": isDark ? "#4C3A30" : "#EDE5DC",
+          "--muted": isDark ? "#B3A194" : "#A89587",
+          "--primary": isDark ? "#EAA85E" : "#C96D2E",
+          // Fallback solid styling for root container
+          background: isDark ? "#2D201A" : "#FFFFFF",
+          color: isDark ? "#F5EFE6" : "#3E2E25",
+        } as any,
+        cacheBust: true,
+      });
+
+      // Restore tilt settings
+      x.set(originalX);
+      y.set(originalY);
+
+      const link = document.createElement("a");
+      link.download = `${petName.trim() || "pet"}_pawdar_id.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error("Failed to download pet card:", error);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -256,12 +316,19 @@ export const PetIdCreatorSection: React.FC = () => {
                     />
                   </label>
                   {uploadedImage && (
-                    <button
-                      onClick={() => setUploadedImage(null)}
-                      className="text-xs font-bold text-red-500 hover:text-red-600 cursor-pointer"
-                    >
-                      Clear
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={uploadedImage}
+                        alt="Preview"
+                        className="w-10 h-10 rounded-lg object-cover border border-border"
+                      />
+                      <button
+                        onClick={() => setUploadedImage(null)}
+                        className="text-xs font-bold text-red-500 hover:text-red-600 cursor-pointer"
+                      >
+                        {t("landing.idClearPhoto")}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -322,10 +389,10 @@ export const PetIdCreatorSection: React.FC = () => {
                 </div>
 
                 {/* Card Main Info */}
-                <div className="grid grid-cols-12 gap-2 my-auto items-center">
+                <div className="grid grid-cols-12 gap-2 my-auto items-start">
                   
                   {/* Photo Avatar */}
-                  <div className="col-span-4 flex items-center justify-start">
+                  <div className="col-span-4 flex items-start justify-start">
                     <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-secondary/15 dark:bg-neutral-800 border border-border/50 flex items-center justify-center shadow-inner overflow-hidden shrink-0">
                       {uploadedImage ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -404,6 +471,16 @@ export const PetIdCreatorSection: React.FC = () => {
 
               </motion.div>
             </div>
+
+            <Button
+              variant="primary"
+              size="md"
+              isLoading={isDownloading}
+              onClick={handleDownload}
+              className="w-full max-w-[420px] md:max-w-[480px] rounded-2xl cursor-pointer"
+            >
+              {t("landing.idDownloadCTA")}
+            </Button>
 
             {/* Healthcare recommendation card beneath the ID */}
             <motion.div
