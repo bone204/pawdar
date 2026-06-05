@@ -8,6 +8,7 @@ import { HeroSection } from "@/presentation/pages/landing/sections/HeroSection";
 import { StatsSection } from "@/presentation/pages/landing/sections/StatsSection";
 import { RadarShowcaseSection } from "@/presentation/pages/landing/sections/RadarShowcaseSection";
 import { ShowcaseVideoSection } from "@/presentation/pages/landing/sections/ShowcaseVideoSection";
+import { TestimonialsSection } from "@/presentation/pages/landing/sections/TestimonialsSection";
  
 export const LandingPage: React.FC = () => {
   const { t } = useTranslation();
@@ -59,6 +60,8 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
         </section>
+
+        <TestimonialsSection />
       </main>
 
       <Footer />
