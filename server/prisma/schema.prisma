@@ -6,9 +6,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// 1. Quản lý Người dùng (Users)
+// 1. Quản lý Người dùng (Users) - Bản Nâng Cấp Hỗ Trợ Email Verification & Security
 model User {
-  id           String   @id @default(uuid()) // Sử dụng UUID thay vì auto-increment cho an toàn bảo mật
+  id           String   @id @default(uuid())
   email        String   @unique
   passwordHash String   @map("password_hash")
   fullName     String   @map("full_name")
@@ -18,12 +18,26 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  // Các mối quan hệ (Relations)
+  // === PHÂN HỆ AUTH & BẢO MẬT NÂNG CẤP ===
+  isEmailVerified     Boolean   @default(false) @map("is_email_verified")
+  
+  // Phục vụ luồng Kích hoạt tài khoản / Xác thực Email bằng Token hoặc OTP
+  verificationToken   String?   @map("verification_token")
+  verificationExpires DateTime? @map("verification_expires")
+
+  // Phục vụ luồng Quên mật khẩu (Reset Password)
+  resetPasswordToken   String?   @map("reset_password_token")
+  resetPasswordExpires DateTime? @map("reset_password_expires")
+
+  // Trạng thái tài khoản (Hỗ trợ khóa nếu spam hoặc vi phạm)
+  isActive            Boolean   @default(true) @map("is_active")
+
+  // === CÁC MỐI QUAN HỆ RECIPROCAL (Giữ nguyên) ===
   pets                 UserPet[]
   encyclopediaFavorites EncyclopediaFavorite[]
   lostReports          LostReport[]
 
-  @@map("users") // Đổi tên bảng dưới DB thành chữ thường số nhiều
+  @@map("users")
 }
 
 // 2. Quản lý Hồ sơ Thú cưng của User (User's Pets)
