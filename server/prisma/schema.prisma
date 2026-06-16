@@ -1,0 +1,108 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Quản lý Người dùng (Users)
+model User {
+  id           String   @id @default(uuid()) // Sử dụng UUID thay vì auto-increment cho an toàn bảo mật
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  phoneNumber  String?  @map("phone_number")
+  avatarUrl    String?  @map("avatar_url")
+  role         String   @default("user") // user, admin, moderator
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Các mối quan hệ (Relations)
+  pets                 UserPet[]
+  encyclopediaFavorites EncyclopediaFavorite[]
+  lostReports          LostReport[]
+
+  @@map("users") // Đổi tên bảng dưới DB thành chữ thường số nhiều
+}
+
+// 2. Quản lý Hồ sơ Thú cưng của User (User's Pets)
+model UserPet {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String
+  breedId     String?  @map("breed_id") // Cho phép null nếu user không rõ giống
+  petType     String   @map("pet_type") // cat hoặc dog
+  gender      String   @map("gender")   // male, female, unknown
+  ageMonths   Int?     @map("age_months")
+  weightKg    Float?   @map("weight_kg")
+  description String?  @db.Text
+  avatarUrl   String?  @map("avatar_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Quan hệ: Một pet thuộc về một User. Nếu User bị xóa, xóa luôn hồ sơ Pet (Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lostReports LostReport[]
+
+  @@map("user_pets")
+}
+
+// 3. Danh sách Giống loài Yêu thích - Phân hệ Bách Khoa Thư (Encyclopedia Favorites)
+model EncyclopediaFavorite {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  breedId   String   @map("breed_id") // ID chuỗi từ Cat/Dog API bên thứ ba
+  petType   String   @default("cat") @map("pet_type")         // Mặc định hoặc tự map dựa vào logic
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Quan hệ
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("encyclopedia_favorites")
+}
+
+// 4. Bản tin Báo lạc - Phân hệ Lost & Found Radar (Lost Reports)
+model LostReport {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  petId              String?  @map("pet_id") // null nếu điền tay thông tin bên dưới
+  
+  // Thông tin điền tay khi không chọn pet có sẵn
+  petName            String?  @map("pet_name")
+  petType            String?  @map("pet_type")
+  breedName          String?  @map("breed_name")
+  rewardAmount       Decimal  @default(0) @db.Decimal(12, 2) @map("reward_amount") // Chuẩn tiền tệ cần dùng Decimal
+  distinctiveFeatures String? @db.Text @map("distinctive_features")
+  contactPhone       String   @map("contact_phone")
+  
+  // Dữ liệu phục vụ tính toán bán kính Radar Định Vị (Giai đoạn 2)
+  latitude           Float    @map("latitude") // PostgreSQL dùng Float cho tọa độ rất mượt
+  longitude          Float    @map("longitude")
+  lostAddress        String   @map("lost_address")
+  
+  status             String   @default("lost") // lost, found, cancelled
+  lostAt             DateTime @map("lost_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Quan hệ
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pet                UserPet?          @relation(fields: [petId], references: [id], onDelete: SetNull) // Nếu xóa hồ sơ pet, giữ lại bài đăng báo lạc nhưng set trường này bằng null
+  images             LostReportImage[]
+
+  @@map("lost_reports")
+}
+
+// 5. Lưu trữ nhiều hình ảnh cho một bài đăng báo lạc (Report Images)
+model LostReportImage {
+  id        String   @id @default(uuid())
+  reportId  String   @map("report_id")
+  imageUrl  String   @map("image_url")
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Quan hệ
+  report    LostReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@map("lost_report_images")
+}
