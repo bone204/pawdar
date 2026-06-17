@@ -169,6 +169,14 @@
       "invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ",
       "passwordLength": "Mật khẩu phải dài ít nhất 6 ký tự",
       "passwordMismatch": "Mật khẩu xác nhận không khớp"
+    },
+    "verifyEmail": {
+      "title": "Kiểm Tra Email Của Bạn",
+      "subtitle": "Chúng tôi đã gửi liên kết xác thực tới địa chỉ email của bạn. Hãy kiểm tra hộp thư và nhấn vào liên kết để kích hoạt tài khoản.",
+      "resendLabel": "Chưa nhận được email?",
+      "resendCta": "Gửi lại email xác thực",
+      "backToLogin": "Quay lại Đăng Nhập",
+      "successBadge": "📬 Email xác thực đã được gửi!"
     }
   },
   "main": {
@@ -182,5 +190,24 @@
     "activity1": "Bella đã hoàn thành kiểm tra sức khỏe định kỳ",
     "activity2": "Lịch kiểm tra răng của Max đã được lên kế hoạch",
     "activity3": "Coco đã cập nhật thực đơn dinh dưỡng mới"
+  },
+  "api": {
+    "codes": {
+      "signup_successful": "Tạo tài khoản thành công!",
+      "email_verified": "Xác thực email thành công!",
+      "email_resent": "Email xác thực đã được gửi lại!",
+      "login_successful": "Đăng nhập thành công!",
+      "email_already_registered": "Email này đã được đăng ký. Vui lòng đăng nhập thay thế.",
+      "invalid_verification_token": "Mã xác thực không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu mã mới.",
+      "verification_token_expired": "Mã xác thực đã hết hạn. Vui lòng yêu cầu gửi lại.",
+      "email_already_verified": "Email này đã được xác thực. Bạn có thể đăng nhập ngay.",
+      "user_not_found": "Không tìm thấy tài khoản với email này.",
+      "invalid_credentials": "Email hoặc mật khẩu không đúng. Vui lòng thử lại.",
+      "user_not_active": "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.",
+      "email_not_verified": "Vui lòng xác thực email trước khi đăng nhập.",
+      "internal_server_error": "Lỗi máy chủ. Vui lòng thử lại sau.",
+      "network_error": "Lỗi kết nối. Vui lòng kiểm tra đường truyền và thử lại.",
+      "unknown_error": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+    }
   }
 }

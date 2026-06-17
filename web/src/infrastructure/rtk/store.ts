@@ -1,0 +1,15 @@
+// Redux store configuration
+
+import { configureStore } from "@reduxjs/toolkit";
+import { authApi } from "@/infrastructure/rtk/api/auth.api";
+
+export const store = configureStore({
+  reducer: {
+    [authApi.reducerPath]: authApi.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(authApi.middleware),
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
