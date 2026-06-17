@@ -7,7 +7,7 @@ const requireEnv = (value: string | undefined, fallback: string): string => {
 // //
 const rawApiBaseUrl = requireEnv(
   process.env.NEXT_PUBLIC_API_BASE_URL,
-  "http://localhost:5000",
+  "https://pawdar-production.up.railway.app",
 );
 
 const isClientSide = typeof window !== "undefined";
