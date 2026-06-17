@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import RotatingText from "@/presentation/components/ui/rotating-text";
 import { SOCIAL_LINKS, CONTACT_LINKS } from "@/shared/constants/links";
+import { APP_ROUTES } from "@/shared/constants/routes";
 
 export const Footer: React.FC = () => {
   const { t } = useTranslation();
@@ -130,8 +131,8 @@ export const Footer: React.FC = () => {
               </h4>
               <nav className="flex flex-col items-center md:items-start gap-4">
                 {[
-                  { href: "/login", label: t("auth.login") },
-                  { href: "/register", label: t("auth.register") },
+                  { href: APP_ROUTES.login, label: t("auth.login") },
+                  { href: APP_ROUTES.register, label: t("auth.register") },
                   { href: "#", label: t("landing.mobileApp") },
                 ].map((link) => (
                   <Link

@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/shared/constants/routes";
 
 export default function MainLayout({
   children,
@@ -18,7 +19,7 @@ export default function MainLayout({
 
   const _onLogoutPressed = () => {
     localStorage.removeItem("pawdar-user");
-    router.push("/login");
+    router.push(APP_ROUTES.login);
   };
 
   return (
@@ -32,7 +33,7 @@ export default function MainLayout({
         <div className="flex flex-col gap-10">
           {/* Logo */}
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 select-none">
+            <Link href={APP_ROUTES.home} className="flex items-center gap-2 select-none">
               <span className="text-2xl">🐶</span>
               {isSidebarOpen && (
                 <span className="font-black text-lg bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">
@@ -53,7 +54,7 @@ export default function MainLayout({
           {/* Nav Items */}
           <nav className="flex flex-col gap-2">
             <Link
-              href="/dashboard"
+              href={APP_ROUTES.dashboard}
               className="flex items-center gap-4 px-4 py-3 bg-primary/10 text-primary rounded-xl font-bold transition-all duration-300"
             >
               <span>📊</span>

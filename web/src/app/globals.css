@@ -68,6 +68,21 @@ body {
   color: var(--foreground);
   font-family: var(--font-merriweather), serif;
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Re-enable text selection for form elements */
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 /* Override browser autofill background to match design tokens */

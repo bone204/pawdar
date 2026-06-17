@@ -11,6 +11,21 @@ export interface SignUpResponseDto {
   verificationToken: string;
 }
 
+export interface VerifyEmailRequestDto {
+  token: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface VerifyEmailResponseDto {}
+
+export interface ResendEmailRequestDto {
+  email: string;
+}
+
+export interface ResendEmailResponseDto {
+  verificationToken: string;
+}
+
 export interface ApiSuccessResponse<T> {
   success: true;
   code: string;
@@ -27,3 +42,4 @@ export interface ApiErrorResponse {
 }
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+

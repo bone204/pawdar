@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { MailerService } from '@nestjs-modules/mailer';
 import { AuthRepository } from '../repositories/auth.repository';
 import { SignUpDto } from '../dto/signup.dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
@@ -24,6 +25,7 @@ export class AuthService {
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
@@ -55,8 +57,8 @@ export class AuthService {
       verificationExpires,
     });
 
-    // Mock sending email
-    this.logger.log(`Verification email sent to ${email}. Token: ${verificationToken}`);
+    // Send verification email
+    await this.sendVerificationEmail(email, fullName, verificationToken);
 
     return {
       success: true,
@@ -131,8 +133,8 @@ export class AuthService {
       verificationExpires,
     );
 
-    // Mock sending email
-    this.logger.log(`New verification email sent to ${email}. Token: ${verificationToken}`);
+    // Send new verification email
+    await this.sendVerificationEmail(email, user.fullName, verificationToken);
 
     return {
       success: true,
@@ -194,6 +196,35 @@ export class AuthService {
         },
       },
     };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  private async sendVerificationEmail(
+    email: string,
+    fullName: string,
+    token: string,
+  ): Promise<void> {
+    const appUrl = process.env.APP_URL || 'http://localhost:3000';
+    const verifyUrl = `${appUrl}/verify-email?token=${token}`;
+
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        subject: '🐾 Verify your Pawdar account',
+        template: 'verify-email',
+        context: {
+          fullName,
+          verifyUrl,
+        },
+      });
+      this.logger.log(`Verification email sent to ${email}`);
+    } catch (error) {
+      // Log error but don't block the response — user already created
+      this.logger.error(`Failed to send verification email to ${email}`, error);
+    }
   }
 
   private async generateTokens(user: User) {

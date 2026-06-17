@@ -1,12 +1,14 @@
+import { Suspense } from "react";
 import { VerifyEmailPage } from "@/presentation/pages/auth/VerifyEmailPage";
 
-interface VerifyEmailEntryPageProps {
-  searchParams: Promise<{ token?: string }>;
-}
-
-export default async function VerifyEmailEntryPage({
-  searchParams,
-}: VerifyEmailEntryPageProps) {
-  const { token } = await searchParams;
-  return <VerifyEmailPage token={token} />;
+export default function VerifyEmailEntryPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-radial from-primary/5 via-transparent to-transparent">
+        <div className="animate-spin text-4xl">⏳</div>
+      </div>
+    }>
+      <VerifyEmailPage />
+    </Suspense>
+  );
 }

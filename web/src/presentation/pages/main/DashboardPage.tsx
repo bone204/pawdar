@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Button } from "@/presentation/components/ui/Button";
 import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/shared/constants/routes";
 
 export const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
@@ -14,7 +15,7 @@ export const DashboardPage: React.FC = () => {
     // Check if user session exists (simulation)
     const savedUser = localStorage.getItem("pawdar-user");
     if (!savedUser) {
-      router.push("/login");
+      router.push(APP_ROUTES.login);
     } else {
       try {
         const userObj = JSON.parse(savedUser);
@@ -29,7 +30,7 @@ export const DashboardPage: React.FC = () => {
 
   const _onLogoutPressed = () => {
     localStorage.removeItem("pawdar-user");
-    router.push("/login");
+    router.push(APP_ROUTES.login);
   };
 
   return (

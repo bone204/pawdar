@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
+import { APP_ROUTES } from "@/shared/constants/routes";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { Button } from "@/presentation/components/ui/Button";
 import { Header } from "@/presentation/components/Header";
@@ -61,8 +62,8 @@ export const RegisterPage: React.FC = () => {
         password: data.password,
       }).unwrap();
 
-      // Redirect to verify-email page with the token
-      router.push(`/verify-email?token=${result.verificationToken}`);
+      // Redirect to verify-email page with email query param
+      router.push(`${APP_ROUTES.verifyEmail}?email=${encodeURIComponent(data.email)}`);
     } catch {
       // Error is handled via RTK Query error state — no additional action needed
     }
@@ -136,7 +137,7 @@ export const RegisterPage: React.FC = () => {
 
           <div className="mt-8 text-center text-xs text-muted select-none">
             {t("auth.haveAccount")}{" "}
-            <Link href="/login" className="text-primary font-bold hover:underline">
+            <Link href={APP_ROUTES.login} className="text-primary font-bold hover:underline">
               {t("auth.login")}
             </Link>
           </div>

@@ -7,6 +7,7 @@ import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { APP_ROUTES } from "@/shared/constants/routes";
  
 export const Header: React.FC = () => {
   const { t } = useTranslation();
@@ -47,7 +48,7 @@ export const Header: React.FC = () => {
           {/* Left Side: Logo */}
           <div className="flex justify-start items-center">
             <Link
-              href="/"
+              href={APP_ROUTES.home}
               className="text-2xl sm:text-3xl font-black bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 cursor-pointer select-none truncate"
             >
               🐶 {t("common.appName")}
@@ -78,13 +79,13 @@ export const Header: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-2 md:gap-4">
-              <Link href="/register" className="cursor-pointer">
+              <Link href={APP_ROUTES.register} className="cursor-pointer">
                 <Button variant="secondary" size="md" className="cursor-pointer select-none h-11 px-4 md:px-6 rounded-full text-sm md:text-base">
                   {t("auth.register")}
                 </Button>
               </Link>
               
-              <Link href="/login" className="cursor-pointer">
+              <Link href={APP_ROUTES.login} className="cursor-pointer">
                 <Button variant="primary" size="md" className="cursor-pointer select-none h-11 px-4 md:px-6 rounded-full text-sm md:text-base">
                   {t("auth.login")}
                 </Button>
@@ -156,13 +157,13 @@ export const Header: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3">
-                <Link href="/register" onClick={() => setIsMenuOpen(false)} className="w-full cursor-pointer">
+                <Link href={APP_ROUTES.register} onClick={() => setIsMenuOpen(false)} className="w-full cursor-pointer">
                   <Button variant="secondary" size="md" className="w-full cursor-pointer select-none h-12 rounded-full font-bold">
                     {t("auth.register")}
                   </Button>
                 </Link>
                 
-                <Link href="/login" onClick={() => setIsMenuOpen(false)} className="w-full cursor-pointer">
+                <Link href={APP_ROUTES.login} onClick={() => setIsMenuOpen(false)} className="w-full cursor-pointer">
                   <Button variant="primary" size="md" className="w-full cursor-pointer select-none h-12 rounded-full font-bold">
                     {t("auth.login")}
                   </Button>

@@ -7,6 +7,7 @@ import { Button } from "@/presentation/components/ui/Button";
 import { Header } from "@/presentation/components/Header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/shared/constants/routes";
 
 export const LoginPage: React.FC = () => {
   const { t } = useTranslation();
@@ -55,7 +56,7 @@ export const LoginPage: React.FC = () => {
       // Store user session in localStorage (for simulation)
       localStorage.setItem("pawdar-user", JSON.stringify(user));
       
-      router.push("/dashboard");
+      router.push(APP_ROUTES.dashboard);
     } catch (err: any) {
       setErrors({ general: err.message || "Failed to log in" });
     } finally {
@@ -115,7 +116,7 @@ export const LoginPage: React.FC = () => {
  
           <div className="mt-8 text-center text-xs text-muted select-none">
             {t("auth.noAccount")}{" "}
-            <Link href="/register" className="text-primary font-bold hover:underline">
+            <Link href={APP_ROUTES.register} className="text-primary font-bold hover:underline">
               {t("auth.register")}
             </Link>
           </div>

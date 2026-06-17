@@ -172,12 +172,25 @@
     },
     "verifyEmail": {
       "title": "Check Your Email",
-      "subtitle": "We sent a verification link to your email address. Please check your inbox and click the link to activate your account.",
-      "resendLabel": "Didn't receive the email?",
-      "resendCta": "Resend verification email",
+      "subtitle": "We've sent a verification email to your address. Please check your inbox and click the link to activate your account.",
       "backToLogin": "Back to Log In",
-      "successBadge": "📬 Verification email sent!"
+      "verifying": "Verifying your email...",
+      "successTitle": "Email Verified!",
+      "successSubtitle": "Your account has been successfully verified. You can now log in and start using Pawdar.",
+      "errorTitle": "Verification Failed",
+      "resendPrompt": "Didn't receive it or link has expired?",
+      "resendTitle": "Resend Verification Email",
+      "resendSubtitle": "Enter your email address and we'll send you a new verification link.",
+      "resendButton": "Resend Verification Email",
+      "resendSuccess": "A new verification email has been sent! Please check your inbox.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email",
+      "goToLogin": "Go to Log In",
+      "sendingEmail": "Sending...",
+      "resendCooldown": "Email sent! Check your inbox.",
+      "backToCheck": "Back to Email Check"
     }
+
   },
   "main": {
     "dashboard": "Dashboard",

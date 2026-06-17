@@ -172,12 +172,25 @@
     },
     "verifyEmail": {
       "title": "Kiểm Tra Email Của Bạn",
-      "subtitle": "Chúng tôi đã gửi liên kết xác thực tới địa chỉ email của bạn. Hãy kiểm tra hộp thư và nhấn vào liên kết để kích hoạt tài khoản.",
-      "resendLabel": "Chưa nhận được email?",
-      "resendCta": "Gửi lại email xác thực",
+      "subtitle": "Chúng tôi đã gửi email xác thực tới địa chỉ của bạn. Hãy kiểm tra hộp thư và nhấn vào liên kết để kích hoạt tài khoản.",
       "backToLogin": "Quay lại Đăng Nhập",
-      "successBadge": "📬 Email xác thực đã được gửi!"
+      "verifying": "Đang xác thực email của bạn...",
+      "successTitle": "Xác Thực Thành Công!",
+      "successSubtitle": "Tài khoản của bạn đã được kích hoạt thành công. Bạn có thể đăng nhập và bắt đầu sử dụng Pawdar ngay.",
+      "errorTitle": "Xác Thực Thất Bại",
+      "resendPrompt": "Chưa nhận được hoặc link đã hết hạn?",
+      "resendTitle": "Gửi Lại Email Xác Thực",
+      "resendSubtitle": "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi lại link xác thực mới.",
+      "resendButton": "Gửi Lại Email Xác Thực",
+      "resendSuccess": "Email xác thực mới đã được gửi! Hãy kiểm tra hộp thư của bạn.",
+      "emailLabel": "Địa chỉ Email",
+      "emailPlaceholder": "Nhập email của bạn",
+      "goToLogin": "Đến Trang Đăng Nhập",
+      "sendingEmail": "Đang gửi...",
+      "resendCooldown": "Email đã gửi! Kiểm tra hộp thư nhé.",
+      "backToCheck": "Quay lại Trang Kiểm Tra"
     }
+
   },
   "main": {
     "dashboard": "Bảng Điều Khiển",
