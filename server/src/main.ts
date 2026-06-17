@@ -10,7 +10,42 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.enableCors({
-    origin: process.env.APP_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+      ];
+
+      const appUrl = process.env.APP_URL;
+      if (appUrl) {
+        let cleanAppUrl = appUrl.trim();
+        if (cleanAppUrl.endsWith('/')) {
+          cleanAppUrl = cleanAppUrl.slice(0, -1);
+        }
+        const formattedAppUrl = cleanAppUrl.startsWith('http://') || cleanAppUrl.startsWith('https://')
+          ? cleanAppUrl
+          : `https://${cleanAppUrl}`;
+        
+        allowedOrigins.push(formattedAppUrl);
+        allowedOrigins.push(cleanAppUrl);
+      }
+
+      const isLocalhost = origin.startsWith('http://localhost:') || 
+                          origin.startsWith('https://localhost:') || 
+                          origin.startsWith('http://127.0.0.1:') ||
+                          origin.startsWith('https://127.0.0.1:');
+
+      if (allowedOrigins.indexOf(origin) !== -1 || isLocalhost) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   });
 
