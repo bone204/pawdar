@@ -1,0 +1,71 @@
+// Data Transfer Objects for authentication API communication
+
+export interface SignUpRequestDto {
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+export interface SignUpResponseDto {
+  userId: string;
+  verificationToken: string;
+}
+
+export interface VerifyEmailRequestDto {
+  token: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface VerifyEmailResponseDto {}
+
+export interface ResendEmailRequestDto {
+  email: string;
+}
+
+export interface ResendEmailResponseDto {
+  verificationToken: string;
+}
+
+export interface ApiSuccessResponse<T> {
+  success: true;
+  code: string;
+  data: T;
+}
+
+export interface ApiErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: string[];
+  };
+}
+
+export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+export interface LoginRequestDto {
+  email: string;
+  password: string;
+}
+
+export interface UserDto {
+  id: string;
+  email: string;
+  fullName: string;
+  phoneNumber?: string | null;
+  avatarUrl?: string | null;
+  role: string;
+}
+
+export interface LoginResponseDto {
+  accessToken: string;
+  refreshToken: string;
+  user: UserDto;
+}
+
+export interface RefreshTokenResponseDto {
+  accessToken: string;
+  refreshToken: string;
+}
+
+

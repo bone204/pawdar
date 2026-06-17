@@ -1,35 +1,31 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Button } from "@/presentation/components/ui/Button";
 import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/shared/constants/routes";
+import { useSelector, useDispatch } from "react-redux";
+import { selectCurrentUser, clearAuthState } from "@/infrastructure/rtk/auth.slice";
 
 export const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [userName, setUserName] = useState("Chủ Thú Cưng");
+  const dispatch = useDispatch();
+  const user = useSelector(selectCurrentUser);
+  const userName = user?.fullName || "Chủ Thú Cưng";
 
   useEffect(() => {
-    // Check if user session exists (simulation)
-    const savedUser = localStorage.getItem("pawdar-user");
-    if (!savedUser) {
-      router.push("/login");
-    } else {
-      try {
-        const userObj = JSON.parse(savedUser);
-        if (userObj && userObj.name) {
-          setUserName(userObj.name);
-        }
-      } catch (e) {
-        // Fallback
-      }
+    // Check if logged-in flag exists, if not redirect to login
+    const loggedInFlag = localStorage.getItem("pawdar-logged-in");
+    if (!loggedInFlag) {
+      router.push(APP_ROUTES.login);
     }
   }, [router]);
 
   const _onLogoutPressed = () => {
-    localStorage.removeItem("pawdar-user");
-    router.push("/login");
+    dispatch(clearAuthState());
+    router.push(APP_ROUTES.login);
   };
 
   return (

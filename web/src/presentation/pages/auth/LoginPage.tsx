@@ -7,10 +7,16 @@ import { Button } from "@/presentation/components/ui/Button";
 import { Header } from "@/presentation/components/Header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/shared/constants/routes";
+import { useLoginMutation } from "@/infrastructure/rtk/api/auth.api";
+import { useDispatch } from "react-redux";
+import { setAuthenticatedSession } from "@/infrastructure/rtk/auth.slice";
 
 export const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
+  const dispatch = useDispatch();
+  const [login] = useLoginMutation();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,19 +49,16 @@ export const LoginPage: React.FC = () => {
     setErrors({});
 
     try {
-      // Simulating API network delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await login({ email, password }).unwrap();
       
-      const user = {
-        id: "u-1",
-        name: "Chủ Thú Cưng",
-        email: email,
-      };
+      dispatch(
+        setAuthenticatedSession({
+          accessToken: response.accessToken,
+          user: response.user,
+        }),
+      );
       
-      // Store user session in localStorage (for simulation)
-      localStorage.setItem("pawdar-user", JSON.stringify(user));
-      
-      router.push("/dashboard");
+      router.push(APP_ROUTES.dashboard);
     } catch (err: any) {
       setErrors({ general: err.message || "Failed to log in" });
     } finally {
@@ -115,7 +118,7 @@ export const LoginPage: React.FC = () => {
  
           <div className="mt-8 text-center text-xs text-muted select-none">
             {t("auth.noAccount")}{" "}
-            <Link href="/register" className="text-primary font-bold hover:underline">
+            <Link href={APP_ROUTES.register} className="text-primary font-bold hover:underline">
               {t("auth.register")}
             </Link>
           </div>

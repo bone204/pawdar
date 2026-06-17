@@ -137,8 +137,11 @@ Backend code must follow clean layered architecture to ensure maintainability:
     *   `PUT`/`PATCH` for updates.
     *   `DELETE` for deleting data.
 *   **Unified Response Format:** All API responses must follow a standardized JSON structure:
-    *   *Success:* `{ "success": true, "data": ... }`
+    *   *Success:* `{ "success": true, "code": "SUCCESS_CODE", "data": ... }`
     *   *Failure:* `{ "success": false, "error": { "code": "ERROR_CODE", "message": "Detailed message", "details": ... } }`
+    *   **Response Codes (Localization Support):** Both success and error responses must return string codes (e.g. `login_successful`, `email_already_verified`) instead of arbitrary text, enabling the frontend to map and translate them into multiple languages.
+    *   **Shared Response Codes File:** Every time a new response code is added, it MUST be registered in a shared/common file (e.g., `src/common/constants/response-codes.ts` or a shared module) to easily deliver and sync with the frontend.
+    *   **Mandatory Sample Response:** When adding or modifying any API endpoint, you MUST provide or document a sample response (both for success and typical failure scenarios) so the frontend (FE) developers know exactly how to parse and handle the response data.
 *   **Pagination & Filters:** All listing APIs (`GET`) must support pagination (`page`, `limit`) and basic search filters to prevent memory exhaustion and optimize bandwidth.
 *   **Data Validation:** Client-sent data must be strictly validated using Schema Validation (e.g., Class-Validator, Zod, Joi) before entering business logic layers.
 

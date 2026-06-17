@@ -6,6 +6,9 @@ import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/shared/constants/routes";
+import { useDispatch, useSelector } from "react-redux";
+import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 
 export default function MainLayout({
   children,
@@ -14,12 +17,23 @@ export default function MainLayout({
 }) {
   const { t } = useTranslation();
   const router = useRouter();
+  const dispatch = useDispatch();
+  const user = useSelector(selectCurrentUser);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const _onLogoutPressed = () => {
-    localStorage.removeItem("pawdar-user");
-    router.push("/login");
+    dispatch(clearAuthState());
+    router.push(APP_ROUTES.login);
   };
+
+  const userInitials = user && user.fullName
+    ? user.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "PT";
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden transition-colors duration-300">
@@ -32,7 +46,7 @@ export default function MainLayout({
         <div className="flex flex-col gap-10">
           {/* Logo */}
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 select-none">
+            <Link href={APP_ROUTES.home} className="flex items-center gap-2 select-none">
               <span className="text-2xl">🐶</span>
               {isSidebarOpen && (
                 <span className="font-black text-lg bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">
@@ -53,7 +67,7 @@ export default function MainLayout({
           {/* Nav Items */}
           <nav className="flex flex-col gap-2">
             <Link
-              href="/dashboard"
+              href={APP_ROUTES.dashboard}
               className="flex items-center gap-4 px-4 py-3 bg-primary/10 text-primary rounded-xl font-bold transition-all duration-300"
             >
               <span>📊</span>
@@ -86,7 +100,7 @@ export default function MainLayout({
             
             {/* User Initials Badge */}
             <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-[0_4px_12px_rgba(217,106,38,0.2)] select-none">
-              PT
+              {userInitials}
             </div>
           </div>
         </header>

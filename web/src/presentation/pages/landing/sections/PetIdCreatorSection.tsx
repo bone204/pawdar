@@ -225,7 +225,6 @@ export const PetIdCreatorSection: React.FC = () => {
                   <label className="text-sm font-bold text-foreground">{t("landing.idLabelName")}</label>
                   <input
                     type="text"
-                    maxLength={15}
                     value={petName}
                     onChange={(e) => setPetName(e.target.value || "")}
                     className="px-4 py-3 rounded-xl border border-border/50 dark:border-border/20 bg-background text-foreground text-sm font-semibold focus:outline-none focus:border-primary/50"
@@ -407,7 +406,7 @@ export const PetIdCreatorSection: React.FC = () => {
                   <div className="col-span-8 flex flex-col gap-3.5 text-left pl-2">
                     <div>
                       <div className="text-[9px] font-black uppercase tracking-widest text-muted">{t("landing.idLabelName")}</div>
-                      <div className="text-xl font-black text-foreground truncate leading-none mt-1">
+                      <div className="text-xl font-black text-foreground wrap-break-word leading-tight mt-1">
                         {petName || "..."}
                       </div>
                     </div>

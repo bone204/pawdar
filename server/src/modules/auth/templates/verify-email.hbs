@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify Your Email - Pawdar</title>
+</head>
+<body style="margin:0;padding:0;background-color:#FCFAF7;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FCFAF7;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+
+          <!-- Header -->
+          <tr>
+            <td style="text-align:center;padding-bottom:32px;">
+              <span style="font-size:2rem;font-weight:900;color:#C96D2E;letter-spacing:-0.02em;">🐾 Pawdar</span>
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background:#FFFFFF;border:1px solid #EDE5DC;border-radius:24px;padding:48px 40px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.04);">
+
+              <!-- Icon -->
+              <table align="center" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;border-collapse:collapse;text-align:center;user-select:none;">
+                <tr>
+                  <td align="center" valign="middle" style="width:72px;height:72px;background-color:#FDF0E7;background-color:rgba(201,109,46,0.1);border-radius:36px;font-size:36px;line-height:72px;color:#C96D2E;text-align:center;vertical-align:middle;">
+                    ✉
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Title -->
+              <h1 style="margin:0 0 12px;font-size:1.6rem;font-weight:900;color:#3E2E25;letter-spacing:-0.02em;line-height:1.2;">
+                Verify Your Email
+              </h1>
+
+              <!-- Subtitle -->
+              <p style="margin:0 0 32px;font-size:0.9rem;color:#A89587;line-height:1.6;">
+                Hi <strong style="color:#3E2E25;">{{fullName}}</strong>, thanks for signing up for Pawdar!<br/>
+                Please click the button below to verify your email address and activate your account.
+              </p>
+
+              <!-- CTA Button -->
+              <a href="{{verifyUrl}}"
+                 style="display:inline-block;background:linear-gradient(135deg,#C96D2E,#E08840);color:#FFFFFF;text-decoration:none;font-size:0.95rem;font-weight:700;padding:16px 40px;border-radius:100px;letter-spacing:0.02em;box-shadow:0 4px 14px rgba(201,109,46,0.35);">
+                ✓ Verify My Email
+              </a>
+
+              <!-- Expiry note -->
+              <p style="margin:28px 0 0;font-size:0.78rem;color:#A89587;">
+                This link expires in <strong>24 hours</strong>. If you didn't create an account, you can safely ignore this email.
+              </p>
+
+              <!-- Divider -->
+              <hr style="margin:32px 0;border:none;border-top:1px solid #EDE5DC;" />
+
+              <!-- Manual link -->
+              <p style="margin:0;font-size:0.75rem;color:#A89587;">
+                Or paste this link in your browser:<br/>
+                <a href="{{verifyUrl}}" style="color:#C96D2E;word-break:break-all;font-size:0.72rem;">{{verifyUrl}}</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="text-align:center;padding-top:28px;">
+              <p style="margin:0;font-size:0.72rem;color:#A89587;">
+                © 2026 Pawdar. All rights reserved.<br/>
+                <span style="font-size:0.68rem;">You received this email because you signed up at Pawdar.</span>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

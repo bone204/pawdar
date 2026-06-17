@@ -7,6 +7,7 @@ import { IMAGES } from "@/shared/constants/images";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { APP_ROUTES } from "@/shared/constants/routes";
 
 export const HeroSection: React.FC = () => {
   const { t } = useTranslation();
@@ -40,12 +41,12 @@ export const HeroSection: React.FC = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-2">
-              <Link href="/register" className="w-full sm:w-auto cursor-pointer">
+              <Link href={APP_ROUTES.register} className="w-full sm:w-auto cursor-pointer">
                 <Button size="lg" className="w-full sm:w-auto cursor-pointer select-none text-base font-bold shadow-md hover:shadow-lg transition-all rounded-full h-14 px-8">
                   {t("landing.ctaStart")}
                 </Button>
               </Link>
-              <Link href="/login" className="w-full sm:w-auto cursor-pointer">
+              <Link href={APP_ROUTES.login} className="w-full sm:w-auto cursor-pointer">
                 <Button variant="secondary" size="lg" className="w-full sm:w-auto cursor-pointer select-none text-base font-bold transition-all rounded-full h-14 px-8">
                   {t("landing.ctaLogin")}
                 </Button>
