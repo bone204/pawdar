@@ -7,5 +7,6 @@ export const API_ENDPOINTS = {
     verifyEmail: "/auth/verify-email",
     resendEmail: "/auth/resend-email",
     login: "/auth/login",
+    refresh: "/auth/refresh",
   },
 } as const;

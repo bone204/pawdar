@@ -12,6 +12,12 @@ export class AuthRepository {
     });
   }
 
+  async findById(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
+  }
+
   async findByVerificationToken(token: string): Promise<User | null> {
     return this.prisma.user.findFirst({
       where: { verificationToken: token },

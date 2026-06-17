@@ -1,10 +1,13 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Req, Res, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import * as express from 'express';
 import { AuthService } from '../services/auth.service';
 import { SignUpDto } from '../dto/signup.dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { ResendEmailDto } from '../dto/resend-email.dto';
 import { LoginDto } from '../dto/login.dto';
+import { RefreshTokenDto } from '../dto/refresh-token.dto';
+import { ResponseCode } from '../../../common/constants/response-codes';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -229,7 +232,79 @@ export class AuthController {
       },
     },
   })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(
+     @Body() loginDto: LoginDto,
+     @Res({ passthrough: true }) response: express.Response,
+   ) {
+    const result = await this.authService.login(loginDto);
+
+    // Store long-lived Refresh Token in HTTP-only cookie
+    response.cookie('refresh_token', result.data.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return result;
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh access token using refresh token' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Access token refreshed successfully. Tokens generated.',
+    schema: {
+      example: {
+        success: true,
+        code: 'refresh_successful',
+        data: {
+          accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMGVlYmM5OS05YzBiLTRlZjgtYmI2ZC02YmI5YmQzODBhMTEiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTYyNDAwMDAwMCwiZXhwIjoxNjI0MDAwOTAwfQ.xxxxxx',
+          refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMGVlYmM5OS05YzBiLTRlZjgtYmI2ZC02YmI5YmQzODBhMTEiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTYyNDAwMDAwMCwiZXhwIjoxNjI0NjA0ODAwfQ.yyyyyy',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired refresh token.',
+    schema: {
+      example: {
+        success: false,
+        error: {
+          code: 'invalid_refresh_token',
+          message: 'Invalid or expired refresh token',
+        },
+      },
+    },
+  })
+  async refresh(
+    @Req() request: express.Request,
+    @Body() refreshTokenDto: RefreshTokenDto,
+    @Res({ passthrough: true }) response: express.Response,
+  ) {
+    const cookieToken = request.cookies?.['refresh_token'];
+    const bodyToken = refreshTokenDto?.refreshToken;
+    const token = cookieToken || bodyToken;
+
+    if (!token) {
+      throw new UnauthorizedException({
+        code: ResponseCode.INVALID_REFRESH_TOKEN,
+        message: 'Refresh token not found in cookies or body',
+      });
+    }
+
+    const result = await this.authService.refreshTokens(token);
+
+    // Set new HTTP-only cookie (Rotate)
+    response.cookie('refresh_token', result.data.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return result;
   }
 }

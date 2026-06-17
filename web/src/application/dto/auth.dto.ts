@@ -43,3 +43,29 @@ export interface ApiErrorResponse {
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
+export interface LoginRequestDto {
+  email: string;
+  password: string;
+}
+
+export interface UserDto {
+  id: string;
+  email: string;
+  fullName: string;
+  phoneNumber?: string | null;
+  avatarUrl?: string | null;
+  role: string;
+}
+
+export interface LoginResponseDto {
+  accessToken: string;
+  refreshToken: string;
+  user: UserDto;
+}
+
+export interface RefreshTokenResponseDto {
+  accessToken: string;
+  refreshToken: string;
+}
+
+

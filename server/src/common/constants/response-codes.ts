@@ -4,6 +4,7 @@ export enum ResponseCode {
   EMAIL_VERIFIED = 'email_verified',
   EMAIL_RESENT = 'email_resent',
   LOGIN_SUCCESSFUL = 'login_successful',
+  REFRESH_SUCCESSFUL = 'refresh_successful',
 
   // Error Codes
   EMAIL_ALREADY_REGISTERED = 'email_already_registered',
@@ -14,5 +15,6 @@ export enum ResponseCode {
   INVALID_CREDENTIALS = 'invalid_credentials',
   USER_NOT_ACTIVE = 'user_not_active',
   EMAIL_NOT_VERIFIED = 'email_not_verified',
+  INVALID_REFRESH_TOKEN = 'invalid_refresh_token',
   INTERNAL_SERVER_ERROR = 'internal_server_error',
 }

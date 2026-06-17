@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
   ForbiddenException,
   Logger,
+  HttpException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -196,6 +197,57 @@ export class AuthService {
         },
       },
     };
+  }
+
+  async refreshTokens(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET || 'pawdar_refresh_token_secret_key_2026_safe_and_long_enough',
+      });
+
+      const userId = payload.sub;
+      const user = await this.authRepository.findById(userId);
+
+      if (!user) {
+        throw new UnauthorizedException({
+          code: ResponseCode.INVALID_REFRESH_TOKEN,
+          message: 'Invalid refresh token: user not found',
+        });
+      }
+
+      if (!user.isActive) {
+        throw new ForbiddenException({
+          code: ResponseCode.USER_NOT_ACTIVE,
+          message: 'User account is deactivated',
+        });
+      }
+
+      if (!user.isEmailVerified) {
+        throw new BadRequestException({
+          code: ResponseCode.EMAIL_NOT_VERIFIED,
+          message: 'Email is not verified. Please verify your email first.',
+        });
+      }
+
+      const tokens = await this.generateTokens(user);
+
+      return {
+        success: true,
+        code: ResponseCode.REFRESH_SUCCESSFUL,
+        data: {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        },
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new UnauthorizedException({
+        code: ResponseCode.INVALID_REFRESH_TOKEN,
+        message: 'Invalid or expired refresh token',
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------

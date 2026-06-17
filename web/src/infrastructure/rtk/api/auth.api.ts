@@ -1,7 +1,7 @@
 // RTK Query slice for authentication - uses endpoints from infrastructure/api/endpoints.ts
 
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { env } from "@/shared/config/env";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithAuth } from "@/infrastructure/http/base-query";
 import { API_ENDPOINTS } from "@/infrastructure/api/endpoints";
 import {
   SignUpRequestDto,
@@ -10,19 +10,16 @@ import {
   VerifyEmailResponseDto,
   ResendEmailRequestDto,
   ResendEmailResponseDto,
+  LoginRequestDto,
+  LoginResponseDto,
+  RefreshTokenResponseDto,
   ApiSuccessResponse,
   ApiErrorResponse,
 } from "@/application/dto/auth.dto";
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: env.apiBaseUrl,
-    prepareHeaders: (headers) => {
-      headers.set("Content-Type", "application/json");
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuth,
   endpoints: (builder) => ({
     signUp: builder.mutation<SignUpResponseDto, SignUpRequestDto>({
       query: (body) => ({
@@ -79,8 +76,48 @@ export const authApi = createApi({
         };
       },
     }),
+
+    login: builder.mutation<LoginResponseDto, LoginRequestDto>({
+      query: (body) => ({
+        url: API_ENDPOINTS.auth.login,
+        method: "POST",
+        body,
+      }),
+      transformResponse: (response: ApiSuccessResponse<LoginResponseDto>) =>
+        response.data,
+      transformErrorResponse: (response) => {
+        const body = response.data as ApiErrorResponse;
+        return {
+          code: body?.error?.code ?? "unknown_error",
+          message: body?.error?.message ?? "An unexpected error occurred",
+          details: body?.error?.details,
+        };
+      },
+    }),
+
+    refresh: builder.mutation<RefreshTokenResponseDto, void>({
+      query: () => ({
+        url: API_ENDPOINTS.auth.refresh,
+        method: "POST",
+      }),
+      transformResponse: (response: ApiSuccessResponse<RefreshTokenResponseDto>) =>
+        response.data,
+      transformErrorResponse: (response) => {
+        const body = response.data as ApiErrorResponse;
+        return {
+          code: body?.error?.code ?? "unknown_error",
+          message: body?.error?.message ?? "An unexpected error occurred",
+          details: body?.error?.details,
+        };
+      },
+    }),
   }),
 });
 
-export const { useSignUpMutation, useVerifyEmailMutation, useResendEmailMutation } = authApi;
-
+export const {
+  useSignUpMutation,
+  useVerifyEmailMutation,
+  useResendEmailMutation,
+  useLoginMutation,
+  useRefreshMutation,
+} = authApi;

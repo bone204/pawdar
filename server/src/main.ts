@@ -3,11 +3,16 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors();
+  app.use(cookieParser());
+  app.enableCors({
+    origin: process.env.APP_URL || 'http://localhost:3000',
+    credentials: true,
+  });
 
   // Global Exception Filter
   app.useGlobalFilters(new HttpExceptionFilter());

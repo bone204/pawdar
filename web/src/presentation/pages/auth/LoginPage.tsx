@@ -8,10 +8,15 @@ import { Header } from "@/presentation/components/Header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routes";
+import { useLoginMutation } from "@/infrastructure/rtk/api/auth.api";
+import { useDispatch } from "react-redux";
+import { setAuthenticatedSession } from "@/infrastructure/rtk/auth.slice";
 
 export const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
+  const dispatch = useDispatch();
+  const [login] = useLoginMutation();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,17 +49,14 @@ export const LoginPage: React.FC = () => {
     setErrors({});
 
     try {
-      // Simulating API network delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await login({ email, password }).unwrap();
       
-      const user = {
-        id: "u-1",
-        name: "Chủ Thú Cưng",
-        email: email,
-      };
-      
-      // Store user session in localStorage (for simulation)
-      localStorage.setItem("pawdar-user", JSON.stringify(user));
+      dispatch(
+        setAuthenticatedSession({
+          accessToken: response.accessToken,
+          user: response.user,
+        }),
+      );
       
       router.push(APP_ROUTES.dashboard);
     } catch (err: any) {

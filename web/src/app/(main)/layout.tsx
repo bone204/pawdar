@@ -7,6 +7,8 @@ import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routes";
+import { useDispatch, useSelector } from "react-redux";
+import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 
 export default function MainLayout({
   children,
@@ -15,12 +17,23 @@ export default function MainLayout({
 }) {
   const { t } = useTranslation();
   const router = useRouter();
+  const dispatch = useDispatch();
+  const user = useSelector(selectCurrentUser);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const _onLogoutPressed = () => {
-    localStorage.removeItem("pawdar-user");
+    dispatch(clearAuthState());
     router.push(APP_ROUTES.login);
   };
+
+  const userInitials = user && user.fullName
+    ? user.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "PT";
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden transition-colors duration-300">
@@ -87,7 +100,7 @@ export default function MainLayout({
             
             {/* User Initials Badge */}
             <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-[0_4px_12px_rgba(217,106,38,0.2)] select-none">
-              PT
+              {userInitials}
             </div>
           </div>
         </header>
