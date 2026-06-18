@@ -16,7 +16,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "db:migrate:create": "prisma migrate dev --create-only",
-    "db:reset": "prisma migrate reset --force",
+    "db:reset": "prisma migrate reset --force && prisma generate",
     "db:seed": "prisma db seed",
     "db:push": "prisma db push",
     "db:status": "prisma migrate status",

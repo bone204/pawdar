@@ -222,5 +222,11 @@
       "network_error": "Connection error. Please check your internet and try again.",
       "unknown_error": "An unexpected error occurred. Please try again."
     }
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Page Not Found",
+    "desc": "The page you are looking for does not exist or has been moved. Go back to the home page to continue exploring.",
+    "cta": "Back to Home"
   }
 }

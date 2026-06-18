@@ -222,5 +222,11 @@
       "network_error": "Lỗi kết nối. Vui lòng kiểm tra đường truyền và thử lại.",
       "unknown_error": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
     }
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Không tìm thấy trang",
+    "desc": "Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển. Hãy quay lại trang chủ để tiếp tục khám phá.",
+    "cta": "Về trang chủ"
   }
 }
