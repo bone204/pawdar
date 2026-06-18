@@ -11,13 +11,20 @@ import { APP_ROUTES } from "@/shared/constants/routes";
 import { useLoginMutation } from "@/infrastructure/rtk/api/auth.api";
 import { useDispatch } from "react-redux";
 import { setAuthenticatedSession } from "@/infrastructure/rtk/auth.slice";
+import dynamic from "next/dynamic";
+import { LOTTIES } from "@/shared/constants/lotties";
+
+const LottiePlayer = dynamic(
+  () => import("@/presentation/components/ui/LottiePlayer"),
+  { ssr: false },
+);
 
 export const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const dispatch = useDispatch();
   const [login] = useLoginMutation();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +37,7 @@ export const LoginPage: React.FC = () => {
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = t("auth.validation.invalidEmail");
     }
-    
+
     if (!password) {
       newErrors.password = t("auth.validation.required");
     } else if (password.length < 6) {
@@ -50,14 +57,14 @@ export const LoginPage: React.FC = () => {
 
     try {
       const response = await login({ email, password }).unwrap();
-      
+
       dispatch(
         setAuthenticatedSession({
           accessToken: response.accessToken,
           user: response.user,
         }),
       );
-      
+
       router.push(APP_ROUTES.dashboard);
     } catch (err: any) {
       setErrors({ general: err.message || "Failed to log in" });
@@ -69,62 +76,74 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-radial from-primary/5 via-transparent to-transparent pt-20">
       <Header />
- 
-      {/* Card Form */}
+
       <div className="grow flex items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md bg-card border border-border p-8 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-black tracking-tight">{t("auth.login")}</h2>
-            <p className="text-xs text-muted mt-2">{t("landing.subtitle")}</p>
-          </div>
- 
-          <form onSubmit={_onLoginPressed} className="flex flex-col gap-5">
-            {errors.general && (
-              <div className="p-4 bg-danger/10 text-danger rounded-xl text-xs font-semibold text-center select-none animate-pulse">
-                {errors.general}
-              </div>
-            )}
- 
-            <TextField
-              label={t("auth.emailLabel")}
-              placeholder={t("auth.emailPlaceholder")}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              error={errors.email}
-              disabled={isLoading}
-            />
- 
-            <TextField
-              label={t("auth.passwordLabel")}
-              placeholder={t("auth.passwordPlaceholder")}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={errors.password}
-              disabled={isLoading}
-            />
- 
-            <div className="text-right select-none">
-              <span className="text-xs text-primary font-bold hover:underline cursor-pointer">
-                {t("auth.forgotPassword")}
-              </span>
-            </div>
- 
-            <Button type="submit" isLoading={isLoading} className="w-full mt-2">
+        <div className="w-full max-w-2xl flex flex-col gap-8">
+
+          {/* Row 1: Title (left) + Lottie (right) */}
+          <div className="flex items-center justify-center gap-4">
+            <h2 className="text-4xl font-black tracking-tight">
               {t("auth.login")}
-            </Button>
-          </form>
- 
-          <div className="mt-8 text-center text-xs text-muted select-none">
-            {t("auth.noAccount")}{" "}
-            <Link href={APP_ROUTES.register} className="text-primary font-bold hover:underline">
-              {t("auth.register")}
-            </Link>
+            </h2>
+            <div className="shrink-0">
+              <LottiePlayer
+                src={LOTTIES.dog}
+                className="w-24 h-24"
+              />
+            </div>
           </div>
+
+          {/* Row 2: Form */}
+          <div className="bg-card border border-border p-8 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+            <form onSubmit={_onLoginPressed} className="flex flex-col gap-5">
+              {errors.general && (
+                <div className="p-4 bg-danger/10 text-danger rounded-xl text-xs font-semibold text-center select-none animate-pulse">
+                  {errors.general}
+                </div>
+              )}
+
+              <TextField
+                label={t("auth.emailLabel")}
+                placeholder={t("auth.emailPlaceholder")}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                error={errors.email}
+                disabled={isLoading}
+              />
+
+              <TextField
+                label={t("auth.passwordLabel")}
+                placeholder={t("auth.passwordPlaceholder")}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={errors.password}
+                disabled={isLoading}
+              />
+
+              <div className="text-right select-none">
+                <span className="text-xs text-primary font-bold hover:underline cursor-pointer">
+                  {t("auth.forgotPassword")}
+                </span>
+              </div>
+
+              <Button type="submit" isLoading={isLoading} className="w-full mt-2">
+                {t("auth.login")}
+              </Button>
+            </form>
+
+            <div className="mt-8 text-center text-xs text-muted select-none">
+              {t("auth.noAccount")}{" "}
+              <Link href={APP_ROUTES.register} className="text-primary font-bold hover:underline">
+                {t("auth.register")}
+              </Link>
+            </div>
+          </div>
+
         </div>
       </div>
- 
+
       {/* Footer */}
       <footer className="py-6 border-t border-border/10 text-center text-xs text-muted select-none">
         {t("landing.footer")}

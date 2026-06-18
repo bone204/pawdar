@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routes";
@@ -8,7 +8,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
-import { Header } from "@/presentation/components/Header";
+import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher";
+import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { Button } from "@/presentation/components/ui/Button";
 import { useVerifyEmailMutation, useResendEmailMutation } from "@/infrastructure/rtk/api/auth.api";
@@ -83,16 +84,25 @@ export const VerifyEmailPage: React.FC = () => {
     }
   }, [email, setValue]);
 
+  // Guard against React 18 Strict Mode double-invocation of effects
+  const hasVerified = useRef(false);
+
   // ── Auto-verify when token is present ────────────────────────────────────
   const _runVerification = useCallback(async () => {
-    if (!token) return;
+    if (!token || hasVerified.current) return;
+    hasVerified.current = true;
     try {
       await verifyEmail({ token }).unwrap();
       setVerifyState("success");
     } catch (err: unknown) {
       const apiErr = err as { code?: string };
-      setVerifyErrorCode(apiErr?.code ?? "unknown_error");
-      setVerifyState("error");
+      // EMAIL_ALREADY_VERIFIED means the first call succeeded — treat as success
+      if (apiErr?.code === "EMAIL_ALREADY_VERIFIED") {
+        setVerifyState("success");
+      } else {
+        setVerifyErrorCode(apiErr?.code ?? "unknown_error");
+        setVerifyState("error");
+      }
     }
   }, [token, verifyEmail]);
 
@@ -128,8 +138,20 @@ export const VerifyEmailPage: React.FC = () => {
   // ── CASE 1: Token in URL → Verification flow ──────────────────────────────
   if (token) {
     return (
-      <div className="min-h-screen flex flex-col bg-radial from-primary/5 via-transparent to-transparent pt-20">
-        <Header />
+      <div className="min-h-screen flex flex-col bg-radial from-primary/5 via-transparent to-transparent">
+        {/* Minimal header: logo left, controls right */}
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <Link
+            href={APP_ROUTES.home}
+            className="text-2xl font-black bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 select-none"
+          >
+            🐶 Pawdar
+          </Link>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
+        </div>
 
         <div className="grow flex items-center justify-center py-12 px-6">
           <div className="w-full max-w-md bg-card border border-border p-10 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)] text-center">
@@ -276,8 +298,20 @@ export const VerifyEmailPage: React.FC = () => {
 
   // ── CASE 2: No token → "Check Your Email" page with Resend form ───────────
   return (
-    <div className="min-h-screen flex flex-col bg-radial from-primary/5 via-transparent to-transparent pt-20">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-radial from-primary/5 via-transparent to-transparent">
+      {/* Minimal header: logo left, controls right */}
+      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        <Link
+          href={APP_ROUTES.home}
+          className="text-2xl font-black bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 select-none"
+        >
+          🐶 Pawdar
+        </Link>
+        <div className="flex items-center gap-3">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
+      </div>
 
       <div className="grow flex items-center justify-center py-12 px-6">
         <div className="w-full max-w-md bg-card border border-border p-10 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)] text-center">
