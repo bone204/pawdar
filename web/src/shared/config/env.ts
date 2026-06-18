@@ -4,15 +4,15 @@ const requireEnv = (value: string | undefined, fallback: string): string => {
   }
   return fallback;
 };
-//
+// //
 const rawApiBaseUrl = requireEnv(
   process.env.NEXT_PUBLIC_API_BASE_URL,
-  "http://localhost:5000",
+  "https://pawdar-production.up.railway.app",
 );
 
 const isClientSide = typeof window !== "undefined";
 const isDev = process.env.NODE_ENV === "development";
-
+// // // //
 export const env = {
   apiBaseUrl: rawApiBaseUrl,
   isClientSide,
