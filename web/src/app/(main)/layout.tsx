@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routes";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
@@ -18,6 +18,7 @@ export default function MainLayout({
 }) {
   const { t } = useTranslation();
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -59,7 +60,21 @@ export default function MainLayout({
       route: APP_ROUTES.dashboard,
       icon: "📊",
     },
+    {
+      id: "breeds",
+      label: t("main.breeds") || "Giống Loài Thú Cưng",
+      route: APP_ROUTES.breeds,
+      icon: "🐶",
+    },
   ];
+
+  // Determine top header title dynamically
+  const getHeaderTitle = () => {
+    if (pathname.startsWith(APP_ROUTES.breeds)) {
+      return t("main.breeds");
+    }
+    return t("main.dashboard");
+  };
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden transition-colors duration-300">
@@ -88,7 +103,7 @@ export default function MainLayout({
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
             <div className="font-bold text-lg select-none text-foreground hidden md:block">
-              {t("main.dashboard")}
+              {getHeaderTitle()}
             </div>
             {/* App name on mobile top bar */}
             <div className="font-black text-lg text-foreground md:hidden select-none">
@@ -142,8 +157,8 @@ export default function MainLayout({
         </header>
 
         {/* Scrollable Dashboard View */}
-        <main className="flex-grow overflow-y-auto p-4 md:p-8 bg-background">
-          <div className="max-w-5xl mx-auto">
+        <main className="flex-grow overflow-y-auto px-4 md:px-8 py-6 bg-background">
+          <div className="w-full">
             {children}
           </div>
         </main>

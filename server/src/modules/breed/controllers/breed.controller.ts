@@ -12,7 +12,18 @@ export class BreedController {
   @ApiOperation({ summary: 'Get all breeds with optional filter by petType and lang' })
   @ApiResponse({ status: 200, description: 'List of breeds in the requested language' })
   async findAll(@Query() query: BreedQueryDto) {
-    return this.breedService.findAll(query.petType, query.lang ?? 'vi');
+    const data = await this.breedService.findAll({
+      petType: query.petType,
+      search: query.search,
+      page: query.page ?? 1,
+      limit: query.limit ?? 20,
+      lang: query.lang ?? 'vi',
+    });
+    return {
+      success: true,
+      code: 'get_breeds_successful',
+      data,
+    };
   }
 
   @Get(':id')
@@ -20,7 +31,12 @@ export class BreedController {
   @ApiResponse({ status: 200, description: 'Breed detail' })
   @ApiResponse({ status: 404, description: 'Breed not found' })
   async findOne(@Param('id') id: string, @Query() query: BreedQueryDto) {
-    return this.breedService.findById(id, query.lang ?? 'vi');
+    const data = await this.breedService.findById(id, query.lang ?? 'vi');
+    return {
+      success: true,
+      code: 'get_breed_detail_successful',
+      data,
+    };
   }
 
   @Post('sync')

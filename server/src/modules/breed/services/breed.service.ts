@@ -24,9 +24,26 @@ export class BreedService {
     private readonly breedSyncService: BreedSyncService,
   ) {}
 
-  async findAll(petType?: string, lang: 'vi' | 'en' = 'vi'): Promise<BreedResponseItem[]> {
-    const breeds = await this.breedRepository.findAll(petType);
-    return breeds.map((b) => this.mapToResponse(b, lang));
+  async findAll(options: {
+    petType?: string;
+    search?: string;
+    page: number;
+    limit: number;
+    lang: 'vi' | 'en';
+  }): Promise<{ items: BreedResponseItem[]; total: number; page: number; limit: number }> {
+    const { petType, search, page, limit, lang } = options;
+    const { items, total } = await this.breedRepository.findAll({
+      petType,
+      search,
+      page,
+      limit,
+    });
+    return {
+      items: items.map((b) => this.mapToResponse(b, lang)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async findById(id: string, lang: 'vi' | 'en' = 'vi'): Promise<BreedResponseItem> {

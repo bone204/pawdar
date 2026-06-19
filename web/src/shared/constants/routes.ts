@@ -5,4 +5,5 @@ export const APP_ROUTES = {
   verifyEmail: "/verify-email",
   dashboard: "/dashboard",
   profile: "/dashboard/profile",
+  breeds: "/breeds",
 } as const;

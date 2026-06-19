@@ -195,32 +195,32 @@ function localTranslateBreedName(nameEn: string, id: string): string {
 // Gemini API call
 // ──────────────────────────────────────────────────────────────────────────────
 async function callGemini(prompt: string): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY is not set in .env');
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const apiKey = 'sk-d1c81fbef1fd46fc868855086be34cfb';
+  const url = 'https://api.deepseek.com/chat/completions';
 
   const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.3, // Low temperature = more consistent translations
-      responseMimeType: 'application/json',
-    },
+    model: 'deepseek-chat',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.3,
+    response_format: { type: 'json_object' },
   };
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
     body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`Gemini API error ${response.status}: ${err}`);
+    throw new Error(`DeepSeek API error ${response.status}: ${err}`);
   }
 
   const data: any = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
+  return data.choices?.[0]?.message?.content ?? '{}';
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -247,41 +247,17 @@ interface TranslatedBreed {
 // ──────────────────────────────────────────────────────────────────────────────
 async function translateBreedBatch(breeds: BreedToTranslate[]): Promise<TranslatedBreed[]> {
   try {
-    const prompt = `
-You are a Vietnamese translator specializing in pet terminology.
-Translate the following array of pet breeds from English to natural Vietnamese.
-Return ONLY a valid JSON array of objects, no markdown, no explanation.
-
-Input:
-${JSON.stringify(
+    const prompt = `Translate breeds from EN to VI. Return JSON array ONLY.
+Input: ${JSON.stringify(
   breeds.map(b => ({
     id: b.id,
     nameEn: b.nameEn,
     descriptionEn: b.descriptionEn,
     temperamentEn: b.temperamentEn,
     originEn: b.originEn,
-  })),
-  null,
-  2
+  }))
 )}
-
-Output format:
-[
-  {
-    "id": "...",
-    "nameVi": "...",
-    "descriptionVi": "..." or null,
-    "temperamentVi": "..." or null,
-    "originVi": "..." or null
-  }
-]
-
-Rules:
-- Keep breed names that are proper nouns (e.g. "Poodle", "Siamese", "Husky") as-is, but you can translate or adapt if there is a common Vietnamese name (e.g. "Poodle" can remain "Poodle", "Siberian Husky" can be "Husky Siberia" or "Siberian Husky").
-- Translate descriptions to natural, fluent Vietnamese.
-- For temperament, translate each trait naturally (e.g. "Active, Playful" → "Năng động, Vui tươi").
-- For origin, translate country/region names to Vietnamese (e.g. "Egypt" → "Ai Cập", "United States" → "Mỹ", "United Kingdom" → "Vương quốc Anh").
-`.trim();
+Output format: [{"id":"...","nameVi":"...","descriptionVi":"...","temperamentVi":"...","originVi":"..."}]`.trim();
 
     const rawJson = await callGemini(prompt);
 
@@ -348,7 +324,7 @@ async function main() {
 
     let successCount = 0;
     let failCount = 0;
-    const batchSize = 10;
+    const batchSize = 25;
 
     for (let i = 0; i < untranslated.length; i += batchSize) {
       const batch = untranslated.slice(i, i + batchSize);

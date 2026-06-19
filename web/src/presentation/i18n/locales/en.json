@@ -198,6 +198,7 @@
   },
   "main": {
     "dashboard": "Dashboard",
+    "breeds": "Pet Breeds",
     "welcome": "Welcome back",
     "statsTitle": "Pet Statistics Overview",
     "activePets": "Active Pets",
@@ -207,6 +208,24 @@
     "activity1": "Bella's health checkup completed",
     "activity2": "Max's dental checkup scheduled",
     "activity3": "Coco's nutrition plan updated"
+  },
+  "breeds": {
+    "title": "Pet Breeds 🐾",
+    "subtitle": "Discover details, traits, origins, and care recommendations for dog and cat breeds worldwide.",
+    "searchPlaceholder": "Search breeds...",
+    "filterAll": "All",
+    "filterDogs": "Dogs 🐶",
+    "filterCats": "Cats 🐱",
+    "origin": "Origin",
+    "lifeSpan": "Life span",
+    "weight": "Weight",
+    "temperament": "Temperament",
+    "noResults": "No breeds found matching the filter.",
+    "learnMore": "Learn more on Wikipedia",
+    "untranslated": "Untranslated",
+    "prevPage": "Previous",
+    "nextPage": "Next",
+    "pageIndicator": "Page {page} of {totalPages}"
   },
   "api": {
     "codes": {

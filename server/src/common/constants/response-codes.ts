@@ -5,6 +5,8 @@ export enum ResponseCode {
   EMAIL_RESENT = 'email_resent',
   LOGIN_SUCCESSFUL = 'login_successful',
   REFRESH_SUCCESSFUL = 'refresh_successful',
+  GET_BREEDS_SUCCESSFUL = 'get_breeds_successful',
+  GET_BREED_DETAIL_SUCCESSFUL = 'get_breed_detail_successful',
 
   // Error Codes
   EMAIL_ALREADY_REGISTERED = 'email_already_registered',

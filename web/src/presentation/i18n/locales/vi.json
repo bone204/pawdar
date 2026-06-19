@@ -198,6 +198,7 @@
   },
   "main": {
     "dashboard": "Bảng Điều Khiển",
+    "breeds": "Giống Loài Thú Cưng",
     "welcome": "Chào mừng bạn quay trở lại",
     "statsTitle": "Tổng Quan Chỉ Số Thú Cưng",
     "activePets": "Thú Cưng Đang Nuôi",
@@ -207,6 +208,24 @@
     "activity1": "Bella đã hoàn thành kiểm tra sức khỏe định kỳ",
     "activity2": "Lịch kiểm tra răng của Max đã được lên kế hoạch",
     "activity3": "Coco đã cập nhật thực đơn dinh dưỡng mới"
+  },
+  "breeds": {
+    "title": "Giống Loài Thú Cưng 🐾",
+    "subtitle": "Khám phá đặc điểm, tính cách, nguồn gốc và mẹo chăm sóc của các giống chó, mèo trên thế giới.",
+    "searchPlaceholder": "Tìm kiếm giống loài...",
+    "filterAll": "Tất cả",
+    "filterDogs": "Bạn Chó 🐶",
+    "filterCats": "Bạn Mèo 🐱",
+    "origin": "Nguồn gốc",
+    "lifeSpan": "Tuổi thọ",
+    "weight": "Cân nặng",
+    "temperament": "Tính cách",
+    "noResults": "Không tìm thấy giống loài nào khớp với bộ lọc.",
+    "learnMore": "Tìm hiểu thêm trên Wikipedia",
+    "untranslated": "Chưa dịch",
+    "prevPage": "Trang trước",
+    "nextPage": "Trang sau",
+    "pageIndicator": "Trang {page} / {totalPages}"
   },
   "api": {
     "codes": {

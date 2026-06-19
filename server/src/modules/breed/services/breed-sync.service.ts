@@ -2,30 +2,50 @@ import { Injectable, Logger } from '@nestjs/common';
 import { BreedRepository } from '../repositories/breed.repository';
 import 'dotenv/config';
 
-interface CatApiBreed {
-  id: string;
+interface NinjaDogBreed {
   name: string;
-  description?: string;
-  temperament?: string;
-  origin?: string;
-  life_span?: string;
-  weight?: { metric?: string };
-  image?: { url?: string };
-  wikipedia_url?: string;
+  image_link: string;
+  good_with_children: number;
+  good_with_other_dogs: number;
+  shedding: number;
+  grooming: number;
+  drooling: number;
+  coat_length: number;
+  good_with_strangers: number;
+  playfulness: number;
+  protectiveness: number;
+  trainability: number;
+  energy: number;
+  barking: number;
+  min_life_expectancy: number;
+  max_life_expectancy: number;
+  max_height_male: number;
+  max_height_female: number;
+  max_weight_male: number;
+  max_weight_female: number;
+  min_height_male: number;
+  min_height_female: number;
+  min_weight_male: number;
+  min_weight_female: number;
 }
 
-interface DogApiBreed {
-  id: number;
+interface NinjaCatBreed {
   name: string;
-  breed_group?: string;
-  temperament?: string;
+  image_link: string;
   origin?: string;
-  life_span?: string;
-  weight?: { metric?: string };
-  image?: { url?: string };
-  description?: string;
-  bred_for?: string;
-  history?: string;
+  length?: string;
+  family_friendly: number;
+  shedding: number;
+  general_health: number;
+  playfulness: number;
+  children_friendly: number;
+  grooming: number;
+  intelligence: number;
+  other_pets_friendly: number;
+  min_weight: number;
+  max_weight: number;
+  min_life_expectancy: number;
+  max_life_expectancy: number;
 }
 
 @Injectable()
@@ -35,67 +55,86 @@ export class BreedSyncService {
   constructor(private readonly breedRepository: BreedRepository) {}
 
   async syncAll(): Promise<{ cats: number; dogs: number }> {
+    this.logger.log('Starting breed sync process via API Ninjas...');
+    
+    // Step 1: Delete all existing breed data to start fresh
+    this.logger.log('Deleting all current breed records in DB...');
+    await this.breedRepository.deleteAll();
+    this.logger.log('DB clean complete!');
+
+    // Step 2: Fetch and save new breed records
     const [catsCount, dogsCount] = await Promise.all([
       this.syncCatBreeds(),
       this.syncDogBreeds(),
     ]);
+
     return { cats: catsCount, dogs: dogsCount };
   }
 
   // ──────────────────────────────────────────────────────────
-  // Private: Sync cat breeds from The Cat API
+  // Private: Sync cat breeds from API Ninjas (/v1/cats)
   // ──────────────────────────────────────────────────────────
   private async syncCatBreeds(): Promise<number> {
-    const apiKey = process.env.CAT_API_KEY;
-    const headers: Record<string, string> = {};
-    if (apiKey) headers['x-api-key'] = apiKey;
+    const apiKey = process.env.API_NINJAS_KEY;
+    if (!apiKey) {
+      this.logger.error('API_NINJAS_KEY is not defined in .env file!');
+      return 0;
+    }
 
-    this.logger.log('Fetching cat breeds from The Cat API...');
-
-    let page = 0;
-    const limit = 100;
+    this.logger.log('Fetching cat breeds from API Ninjas...');
+    let offset = 0;
     let totalSynced = 0;
     let hasMore = true;
 
     while (hasMore) {
-      const url = `https://api.thecatapi.com/v1/breeds?limit=${limit}&page=${page}`;
-      let breeds: CatApiBreed[] = [];
+      const url = `https://api.api-ninjas.com/v1/cats?min_weight=1&offset=${offset}`;
+      let breeds: NinjaCatBreed[] = [];
       try {
-        const response = await fetch(url, { headers });
+        const response = await fetch(url, {
+          headers: { 'X-Api-Key': apiKey },
+        });
         if (!response.ok) {
-          throw new Error(`Cat API error: ${response.status} ${response.statusText}`);
+          throw new Error(`API Ninjas Cats error: ${response.status} ${response.statusText}`);
         }
         breeds = await response.json();
       } catch (error) {
-        this.logger.warn(`Failed to fetch from Cat API at page ${page}: ${error.message}.`);
+        this.logger.error(`Failed to fetch from API Ninjas Cats at offset ${offset}: ${error.message}`);
         break;
       }
 
-      if (breeds.length === 0) {
+      if (!breeds || breeds.length === 0) {
         hasMore = false;
         break;
       }
 
       for (const breed of breeds) {
+        const id = `cat_${breed.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        
+        // Generate description
+        const descriptionEn = `An elegant ${breed.name} cat breed originating from ${breed.origin || 'unknown'}. Characteristics: intelligence level ${breed.intelligence}/5, playfulness ${breed.playfulness}/5, grooming need ${breed.grooming}/5, general health score ${breed.general_health}/5.`;
+        
+        // Generate temperament
+        const temperamentEn = `Playful: ${breed.playfulness}/5, Intelligent: ${breed.intelligence}/5, Family Friendly: ${breed.family_friendly}/5`;
+
         await this.breedRepository.upsert({
-          id: `cat_${breed.id}`,
+          id,
           petType: 'cat',
           nameEn: breed.name,
-          descriptionEn: breed.description ?? null,
-          temperamentEn: breed.temperament ?? null,
+          descriptionEn,
+          temperamentEn,
           originEn: breed.origin ?? null,
-          lifeSpan: breed.life_span ?? null,
-          weightKg: breed.weight?.metric ?? null,
-          imageUrl: breed.image?.url ?? null,
-          wikipediaUrl: breed.wikipedia_url ?? null,
+          lifeSpan: `${breed.min_life_expectancy} - ${breed.max_life_expectancy} years`,
+          weightKg: `${Math.round(breed.min_weight * 0.453592)} - ${Math.round(breed.max_weight * 0.453592)}`, // API Ninjas weight is in lbs, convert to kg
+          imageUrl: breed.image_link ?? null,
+          wikipediaUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(breed.name)}`,
         });
       }
 
       totalSynced += breeds.length;
-      this.logger.log(`Synced page ${page}: ${breeds.length} cat breeds`);
-
-      hasMore = breeds.length === limit;
-      page++;
+      this.logger.log(`Synced cats offset ${offset}: ${breeds.length} breeds`);
+      
+      hasMore = breeds.length === 20;
+      offset += breeds.length;
     }
 
     this.logger.log(`Total cat breeds synced: ${totalSynced}`);
@@ -103,67 +142,73 @@ export class BreedSyncService {
   }
 
   // ──────────────────────────────────────────────────────────
-  // Private: Sync dog breeds from The Dog API (paginated)
+  // Private: Sync dog breeds from API Ninjas (/v1/dogs)
   // ──────────────────────────────────────────────────────────
   private async syncDogBreeds(): Promise<number> {
-    const apiKey = process.env.DOG_API_KEY;
-    const headers: Record<string, string> = {};
-    if (apiKey) headers['x-api-key'] = apiKey;
+    const apiKey = process.env.API_NINJAS_KEY;
+    if (!apiKey) {
+      this.logger.error('API_NINJAS_KEY is not defined in .env file!');
+      return 0;
+    }
 
-    this.logger.log('Fetching dog breeds from The Dog API...');
-
-    let page = 0;
-    const limit = 100;
+    this.logger.log('Fetching dog breeds from API Ninjas...');
+    let offset = 0;
     let totalSynced = 0;
     let hasMore = true;
 
     while (hasMore) {
-      const url = `https://api.thedogapi.com/v1/breeds?limit=${limit}&page=${page}`;
-      const response = await fetch(url, { headers });
-
-      if (!response.ok) {
-        throw new Error(`Dog API error: ${response.status} ${response.statusText}`);
+      const url = `https://api.api-ninjas.com/v1/dogs?min_weight=1&offset=${offset}`;
+      let breeds: NinjaDogBreed[] = [];
+      try {
+        const response = await fetch(url, {
+          headers: { 'X-Api-Key': apiKey },
+        });
+        if (!response.ok) {
+          throw new Error(`API Ninjas Dogs error: ${response.status} ${response.statusText}`);
+        }
+        breeds = await response.json();
+      } catch (error) {
+        this.logger.error(`Failed to fetch from API Ninjas Dogs at offset ${offset}: ${error.message}`);
+        break;
       }
 
-      const breeds: DogApiBreed[] = await response.json();
-
-      if (breeds.length === 0) {
+      if (!breeds || breeds.length === 0) {
         hasMore = false;
         break;
       }
 
       for (const breed of breeds) {
-        // Construct descriptionEn using description, bred_for, or history fallback
-        let descriptionEn = breed.description ?? null;
-        if (!descriptionEn && breed.bred_for) {
-          descriptionEn = `Bred for: ${breed.bred_for}.`;
-          if (breed.breed_group) {
-            descriptionEn += ` Belongs to the ${breed.breed_group} breed group.`;
-          }
-        } else if (!descriptionEn && breed.breed_group) {
-          descriptionEn = `A dog breed belonging to the ${breed.breed_group} group.`;
-        }
+        const id = `dog_${breed.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+
+        // Generate description
+        const descriptionEn = `A wonderful ${breed.name} dog breed. Characteristics: energy level ${breed.energy}/5, playfulness ${breed.playfulness}/5, protectiveness ${breed.protectiveness}/5, barking frequency ${breed.barking}/5.`;
+
+        // Generate temperament
+        const temperamentEn = `Playful: ${breed.playfulness}/5, Trainable: ${breed.trainability}/5, Protectiveness: ${breed.protectiveness}/5`;
+
+        // Convert lbs to kg
+        const minKg = Math.round(breed.min_weight_male * 0.453592);
+        const maxKg = Math.round(breed.max_weight_male * 0.453592);
 
         await this.breedRepository.upsert({
-          id: `dog_${breed.id}`,
+          id,
           petType: 'dog',
           nameEn: breed.name,
           descriptionEn,
-          temperamentEn: breed.temperament ?? null,
-          originEn: breed.origin ?? null,
-          lifeSpan: breed.life_span ?? null,
-          weightKg: breed.weight?.metric ?? null,
-          imageUrl: breed.image?.url ?? null,
-          wikipediaUrl: null,
+          temperamentEn,
+          originEn: null, // API Ninjas Dogs does not have origin
+          lifeSpan: `${breed.min_life_expectancy} - ${breed.max_life_expectancy} years`,
+          weightKg: `${minKg} - ${maxKg}`,
+          imageUrl: breed.image_link ?? null,
+          wikipediaUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(breed.name)}`,
         });
       }
 
       totalSynced += breeds.length;
-      this.logger.log(`Synced page ${page}: ${breeds.length} dog breeds`);
+      this.logger.log(`Synced dogs offset ${offset}: ${breeds.length} breeds`);
 
-      // Stop if we got fewer than the limit (last page)
-      hasMore = breeds.length === limit;
-      page++;
+      hasMore = breeds.length === 20;
+      offset += breeds.length;
     }
 
     this.logger.log(`Total dog breeds synced: ${totalSynced}`);

@@ -6,15 +6,45 @@ import { Breed } from '@prisma/client';
 export class BreedRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(petType?: string): Promise<Breed[]> {
-    return this.prisma.breed.findMany({
-      where: petType ? { petType } : undefined,
-      orderBy: { nameEn: 'asc' },
-    });
+  async findAll(options: {
+    petType?: string;
+    search?: string;
+    page: number;
+    limit: number;
+  }): Promise<{ items: Breed[]; total: number }> {
+    const { petType, search, page, limit } = options;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (petType) {
+      where.petType = petType;
+    }
+    if (search) {
+      where.OR = [
+        { nameEn: { contains: search, mode: 'insensitive' } },
+        { nameVi: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.breed.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { nameEn: 'asc' },
+      }),
+      this.prisma.breed.count({ where }),
+    ]);
+
+    return { items, total };
   }
 
   async findById(id: string): Promise<Breed | null> {
     return this.prisma.breed.findUnique({ where: { id } });
+  }
+
+  async deleteAll(): Promise<void> {
+    await this.prisma.breed.deleteMany({});
   }
 
   async upsert(data: {
