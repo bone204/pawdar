@@ -14,6 +14,7 @@ import { TextField } from "@/presentation/components/ui/TextField";
 import { Button } from "@/presentation/components/ui/Button";
 import { useVerifyEmailMutation, useResendEmailMutation } from "@/infrastructure/rtk/api/auth.api";
 import { useApiErrorService } from "@/application/services/api-error.service";
+import { AppLogo } from "@/presentation/components/ui/AppLogo";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,6 +42,7 @@ export const VerifyEmailPage: React.FC = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const email = searchParams.get("email");
+  const resendParam = searchParams.get("resend");
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [verifyState, setVerifyState] = useState<VerifyState>("verifying");
@@ -48,6 +50,7 @@ export const VerifyEmailPage: React.FC = () => {
   const [pageMode, setPageMode] = useState<PageMode>("checking");
   const [resendSuccessMsg, setResendSuccessMsg] = useState<string>("");
   const [cooldown, setCooldown] = useState<number>(0);
+  const [hasAutoVerifiedFromOtherTab, setHasAutoVerifiedFromOtherTab] = useState(false);
 
   // ── Cooldown timer countdown ──────────────────────────────────────────────
   useEffect(() => {
@@ -94,11 +97,23 @@ export const VerifyEmailPage: React.FC = () => {
     try {
       await verifyEmail({ token }).unwrap();
       setVerifyState("success");
+      
+      // Notify other tabs that verification was successful
+      if (typeof window !== "undefined") {
+        const bc = new BroadcastChannel("email_verification");
+        bc.postMessage({ status: "verified" });
+        bc.close();
+      }
     } catch (err: unknown) {
       const apiErr = err as { code?: string };
       // EMAIL_ALREADY_VERIFIED means the first call succeeded — treat as success
-      if (apiErr?.code === "EMAIL_ALREADY_VERIFIED") {
+      if (apiErr?.code === "EMAIL_ALREADY_VERIFIED" || apiErr?.code === "email_already_verified") {
         setVerifyState("success");
+        if (typeof window !== "undefined") {
+          const bc = new BroadcastChannel("email_verification");
+          bc.postMessage({ status: "verified" });
+          bc.close();
+        }
       } else {
         setVerifyErrorCode(apiErr?.code ?? "unknown_error");
         setVerifyState("error");
@@ -120,10 +135,38 @@ export const VerifyEmailPage: React.FC = () => {
       await resendEmail({ email: targetEmail }).unwrap();
       setResendSuccessMsg(t("auth.verifyEmail.resendSuccess"));
       setCooldown(60);
-    } catch {
-      // error handled via RTK state
+    } catch (err: any) {
+      if (err?.code === "email_already_verified" || err?.code === "EMAIL_ALREADY_VERIFIED") {
+        setVerifyState("success");
+        setHasAutoVerifiedFromOtherTab(true);
+      }
     }
   };
+  
+  // ── Auto resend triggers once on landing if coming from login unverified ───
+  const autoResendTriggered = useRef(false);
+  useEffect(() => {
+    if (email && resendParam === "true" && !autoResendTriggered.current) {
+      autoResendTriggered.current = true;
+      _handleDirectResend(email);
+    }
+  }, [email, resendParam, _handleDirectResend]);
+
+  // ── Listen for verification success from other tabs ───────────────────────
+  useEffect(() => {
+    if (typeof window === "undefined" || token) return;
+
+    const bc = new BroadcastChannel("email_verification");
+    bc.onmessage = (event) => {
+      if (event.data?.status === "verified") {
+        setVerifyState("success");
+        setHasAutoVerifiedFromOtherTab(true);
+      }
+    };
+    return () => {
+      bc.close();
+    };
+  }, [token]);
 
   // ── Resend handler for form submission ─────────────────────────────────────
   const _onResendPressed = handleSubmit(async (data: ResendFormData) => {
@@ -135,18 +178,13 @@ export const VerifyEmailPage: React.FC = () => {
 
   const resendServerError = resendError ? translateError(resendError) : undefined;
 
-  // ── CASE 1: Token in URL → Verification flow ──────────────────────────────
-  if (token) {
+  // ── CASE 1: Token in URL OR verified from other tab → Verification flow ───
+  if (token || hasAutoVerifiedFromOtherTab) {
     return (
       <div className="min-h-screen flex flex-col bg-radial from-primary/5 via-transparent to-transparent">
         {/* Minimal header: logo left, controls right */}
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <Link
-            href={APP_ROUTES.home}
-            className="text-2xl font-black bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 select-none"
-          >
-            🐶 Pawdar
-          </Link>
+          <AppLogo />
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <ThemeToggle />
@@ -301,12 +339,7 @@ export const VerifyEmailPage: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-radial from-primary/5 via-transparent to-transparent">
       {/* Minimal header: logo left, controls right */}
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <Link
-          href={APP_ROUTES.home}
-          className="text-2xl font-black bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 select-none"
-        >
-          🐶 Pawdar
-        </Link>
+        <AppLogo />
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <ThemeToggle />

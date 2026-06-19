@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { APP_ROUTES } from "@/shared/constants/routes";
+import { AppLogo } from "@/presentation/components/ui/AppLogo";
  
 export const Header: React.FC = () => {
   const { t } = useTranslation();
@@ -54,12 +55,7 @@ export const Header: React.FC = () => {
         <div className="bg-card/90 backdrop-blur-lg border border-border shadow-[0_4px_12px_rgba(62,46,37,0.05)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-full h-[76px] px-6 lg:px-10 grid grid-cols-2 lg:grid-cols-3 items-center transition-all duration-300">
           {/* Left Side: Logo */}
           <div className="flex justify-start items-center">
-            <Link
-              href={APP_ROUTES.home}
-              className="text-2xl font-black bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 cursor-pointer select-none truncate"
-            >
-              🐾 {t("common.appName")}
-            </Link>
+            <AppLogo />
           </div>
           
           {/* Center: Navigation Links (Desktop lg+) */}
