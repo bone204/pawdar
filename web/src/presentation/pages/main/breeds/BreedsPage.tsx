@@ -215,9 +215,6 @@ export const BreedsPage: React.FC = () => {
                       {t("breeds.untranslated")}
                     </span>
                   )}
-                  <span className="absolute bottom-3 left-3 text-xs font-bold bg-black/60 text-white px-2.5 py-1 rounded-full backdrop-blur-xs">
-                    {breed.petType === "dog" ? "🐶 Dog" : "🐱 Cat"}
-                  </span>
                 </div>
 
                 {/* Title & Info */}

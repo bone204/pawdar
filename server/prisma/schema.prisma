@@ -53,6 +53,7 @@ model UserPet {
   description String?  @db.Text
   avatarUrl   String?  @map("avatar_url")
   createdAt   DateTime @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   // Quan hệ: Một pet thuộc về một User. Nếu User bị xóa, xóa luôn hồ sơ Pet (Cascade)
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)

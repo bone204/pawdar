@@ -10,6 +10,8 @@ import { APP_ROUTES } from "@/shared/constants/routes";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { AppSidebar, NavItem } from "@/presentation/components/sidebar/AppSidebar";
+import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon } from "@/presentation/components/ui/Icons";
+import { useGetPetByIdQuery } from "@/infrastructure/rtk/api/pet.api";
 
 export default function MainLayout({
   children,
@@ -56,24 +58,43 @@ export default function MainLayout({
   const navItems: NavItem[] = [
     {
       id: "dashboard",
-      label: t("main.dashboard") || "Dashboard",
+      label: t("main.dashboard") || "Trang chủ",
       route: APP_ROUTES.dashboard,
-      icon: "📊",
+      icon: <HomeIcon className="w-5 h-5" />,
+    },
+    {
+      id: "my-pets",
+      label: t("main.myPets") || "Thú Cưng Của Tôi",
+      route: APP_ROUTES.myPets,
+      icon: <PawPrintIcon className="w-5 h-5" />,
     },
     {
       id: "breeds",
       label: t("main.breeds") || "Giống Loài Thú Cưng",
       route: APP_ROUTES.breeds,
-      icon: "🐶",
+      icon: <PawPrintIcon className="w-5 h-5" />,
     },
   ];
 
+  // Check if current route is a pet detail page
+  const petIdMatch = pathname.match(/^\/my-pets\/([^/]+)$/i);
+  const activePetId = petIdMatch ? petIdMatch[1] : "";
+  const { data: activePet } = useGetPetByIdQuery(activePetId, {
+    skip: !activePetId,
+  });
+
   // Determine top header title dynamically
   const getHeaderTitle = () => {
+    if (activePetId) {
+      return `${t("main.myPets")} / ${activePet?.name || "..."}`;
+    }
+    if (pathname.startsWith(APP_ROUTES.myPets)) {
+      return t("main.myPets");
+    }
     if (pathname.startsWith(APP_ROUTES.breeds)) {
       return t("main.breeds");
     }
-    return t("main.dashboard");
+    return t("main.dashboard") || "Trang chủ";
   };
 
   return (
@@ -102,6 +123,16 @@ export default function MainLayout({
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
+            {/* Back button for subpages */}
+            {activePetId && (
+              <button
+                onClick={() => router.push("/my-pets")}
+                className="p-2 rounded-xl text-foreground hover:text-primary hover:bg-secondary/50 active:scale-95 transition-all cursor-pointer flex items-center justify-center mr-1"
+                aria-label="Back to My Pets"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              </button>
+            )}
             <div className="font-bold text-lg select-none text-foreground hidden md:block">
               {getHeaderTitle()}
             </div>
@@ -136,7 +167,7 @@ export default function MainLayout({
                     className="flex items-center gap-3 w-full p-3 rounded-xl text-foreground hover:bg-secondary/50 transition-colors font-bold text-sm"
                     onClick={() => setIsProfileMenuOpen(false)}
                   >
-                    <span className="flex items-center justify-center w-5 h-5 text-lg">👤</span>
+                    <UserIcon className="w-5 h-5 text-muted-foreground" />
                     {t("common.profile") || "Hồ sơ cá nhân"}
                   </Link>
                   
@@ -147,7 +178,7 @@ export default function MainLayout({
                     }}
                     className="flex items-center gap-3 w-full p-3 rounded-xl text-danger hover:bg-danger/10 transition-colors font-bold text-sm cursor-pointer"
                   >
-                    <span className="flex items-center justify-center w-5 h-5 text-lg">🚪</span>
+                    <LogOutIcon className="w-5 h-5 text-danger/80" />
                     {t("common.logout")}
                   </button>
                 </div>

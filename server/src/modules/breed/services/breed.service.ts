@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BreedRepository } from '../repositories/breed.repository';
 import { BreedSyncService } from './breed-sync.service';
+import { ResponseCode } from '../../../common/constants/response-codes';
 
 export interface BreedResponseItem {
   id: string;
@@ -48,7 +49,12 @@ export class BreedService {
 
   async findById(id: string, lang: 'vi' | 'en' = 'vi'): Promise<BreedResponseItem> {
     const breed = await this.breedRepository.findById(id);
-    if (!breed) throw new NotFoundException(`Breed with id "${id}" not found`);
+    if (!breed) {
+      throw new NotFoundException({
+        code: ResponseCode.BREED_NOT_FOUND,
+        message: `Breed with id "${id}" not found`,
+      });
+    }
     return this.mapToResponse(breed, lang);
   }
 

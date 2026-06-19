@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { APP_ROUTES } from "@/shared/constants/routes";
+import { PawPrintIcon, LogOutIcon } from "@/presentation/components/ui/Icons";
 
 export interface NavItem {
   id: string;
@@ -54,7 +55,7 @@ export function AppSidebar({
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-border/80">
               <Link href={APP_ROUTES.dashboard} className="flex items-center gap-2 select-none group" onClick={() => setIsMobileMenuOpen(false)}>
-                <span className="text-2xl group-hover:scale-110 transition-transform duration-300">🐾</span>
+                <PawPrintIcon className="w-7 h-7 text-primary group-hover:scale-110 transition-transform duration-300" />
                 <span className="font-black text-2xl bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent">
                   {title}
                 </span>
@@ -112,7 +113,7 @@ export function AppSidebar({
                 }}
                 className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-danger bg-danger/10 hover:bg-danger/20 border border-danger/20 transition-all cursor-pointer active:scale-[0.98]"
               >
-                <span className="flex items-center justify-center w-5 h-5">🚪</span>
+                <LogOutIcon className="w-5 h-5 text-danger/80" />
                 <span>{t("common.logout")}</span>
               </button>
             </div>
@@ -123,26 +124,28 @@ export function AppSidebar({
       {/* ── Desktop View ────────────────────────────────────────────── */}
       <aside
         className={`hidden md:flex flex-col bg-card border-r border-border transition-[width] duration-300 ease-in-out shrink-0 ${
-          isExpanded ? "w-64" : "w-[80px]"
+          isExpanded ? "w-[270px]" : "w-[80px]"
         }`}
       >
-        <div className="flex w-full flex-col items-center px-4 py-6 gap-8 flex-1 overflow-x-hidden">
+        <div className="flex w-full flex-col items-center px-4 py-6 gap-4 flex-1 overflow-x-hidden">
           {/* Header Toggle Button */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="group flex items-center h-12 w-full rounded-xl transition-colors duration-300 cursor-pointer active:scale-[0.98] text-muted hover:text-foreground hover:bg-secondary/50 bg-transparent"
+            className={`group flex items-center ${
+              isExpanded ? "justify-start px-3.5 gap-2.5" : "justify-center"
+            } h-12 w-full rounded-xl transition-colors duration-300 cursor-pointer active:scale-[0.98] text-muted hover:text-foreground hover:bg-secondary/50 bg-transparent`}
             aria-label="Toggle menu"
           >
-            <span className="flex items-center justify-center shrink-0 w-12 h-12 transition-transform">
+            <span className="flex items-center justify-center shrink-0 w-6 h-6 transition-transform">
               {isExpanded ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
               )}
             </span>
             
             <span
-              className={`text-sm font-bold truncate transition-all duration-300 ease-in-out ${
+              className={`text-base font-bold truncate transition-all duration-300 ease-in-out ${
                 isExpanded
                   ? "opacity-100 translate-x-0"
                   : "opacity-0 -translate-x-4 pointer-events-none max-w-0"
@@ -152,8 +155,11 @@ export function AppSidebar({
             </span>
           </button>
 
+          {/* Divider */}
+          <hr className="w-full border-border/60" />
+
           {/* Navigation Items */}
-          <nav className="flex w-full flex-col gap-2">
+          <nav className="flex w-full flex-col gap-5">
             {navItems.map((item) => {
               const isActive = pathname.startsWith(item.route);
               return (
@@ -161,18 +167,20 @@ export function AppSidebar({
                   key={item.id}
                   href={item.route}
                   title={isExpanded ? undefined : item.label}
-                  className={`group flex items-center h-12 w-full rounded-xl transition-colors duration-300 cursor-pointer active:scale-[0.98] ${
+                  className={`group flex items-center ${
+                    isExpanded ? "justify-start px-3.5 gap-2.5" : "justify-center"
+                  } h-12 w-full rounded-xl transition-colors duration-300 cursor-pointer active:scale-[0.98] ${
                     isActive
                       ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(201,109,46,0.2)] dark:shadow-[0_4px_12px_rgba(234,168,94,0.25)]"
                       : "text-muted hover:text-foreground hover:bg-secondary/50 bg-transparent"
                   }`}
                 >
-                  <span className="flex items-center justify-center shrink-0 w-12 h-12 transition-transform group-hover:scale-110">
+                  <span className="flex items-center justify-center shrink-0 w-6 h-6 transition-transform group-hover:scale-110">
                     {item.icon}
                   </span>
                   
                   <span
-                    className={`text-sm font-bold truncate transition-all duration-300 ease-in-out ${
+                    className={`text-base font-bold truncate transition-all duration-300 ease-in-out ${
                       isExpanded
                         ? "opacity-100 translate-x-0"
                         : "opacity-0 -translate-x-4 pointer-events-none max-w-0"
@@ -193,7 +201,7 @@ export function AppSidebar({
             className="flex items-center h-12 w-full rounded-xl transition-colors duration-300 select-none group hover:bg-secondary/20"
           >
             <span className="flex items-center justify-center shrink-0 w-12 h-12 text-2xl group-hover:scale-110 transition-transform duration-300">
-              <span className="bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent">🐾</span>
+              <PawPrintIcon className="w-6 h-6 text-primary" />
             </span>
             
             <div

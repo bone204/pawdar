@@ -29,7 +29,23 @@ export const breedApi = createApi({
         };
       },
     }),
+    getBreedById: builder.query<BreedResponseDto, string>({
+      query: (id) => ({
+        url: `${API_ENDPOINTS.breeds}/${id}`,
+        method: "GET",
+      }),
+      transformResponse: (response: ApiSuccessResponse<BreedResponseDto>) =>
+        response.data,
+      transformErrorResponse: (response) => {
+        const body = response.data as ApiErrorResponse;
+        return {
+          code: body?.error?.code ?? "unknown_error",
+          message: body?.error?.message ?? "An unexpected error occurred",
+          details: body?.error?.details,
+        };
+      },
+    }),
   }),
 });
 
-export const { useGetBreedsQuery, useLazyGetBreedsQuery } = breedApi;
+export const { useGetBreedsQuery, useLazyGetBreedsQuery, useGetBreedByIdQuery } = breedApi;

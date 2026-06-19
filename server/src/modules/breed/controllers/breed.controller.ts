@@ -2,6 +2,7 @@ import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BreedService } from '../services/breed.service';
 import { BreedQueryDto } from '../dto/breed-query.dto';
+import { ResponseCode } from '../../../common/constants/response-codes';
 
 @ApiTags('breeds')
 @Controller('breeds')
@@ -21,7 +22,7 @@ export class BreedController {
     });
     return {
       success: true,
-      code: 'get_breeds_successful',
+      code: ResponseCode.GET_BREEDS_SUCCESSFUL,
       data,
     };
   }
@@ -34,7 +35,7 @@ export class BreedController {
     const data = await this.breedService.findById(id, query.lang ?? 'vi');
     return {
       success: true,
-      code: 'get_breed_detail_successful',
+      code: ResponseCode.GET_BREED_DETAIL_SUCCESSFUL,
       data,
     };
   }
