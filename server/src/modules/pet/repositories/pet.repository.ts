@@ -85,9 +85,14 @@ export class PetRepository {
     return { items, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) };
   }
 
-  async findById(id: string): Promise<UserPet | null> {
+  async findById(id: string): Promise<any | null> {
     return this.prisma.userPet.findFirst({
       where: { id, deletedAt: null },
+      include: {
+        gallery: {
+          orderBy: { capturedAt: 'desc' },
+        },
+      },
     });
   }
 

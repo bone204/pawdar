@@ -58,8 +58,25 @@ model UserPet {
   // Quan hệ: Một pet thuộc về một User. Nếu User bị xóa, xóa luôn hồ sơ Pet (Cascade)
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   lostReports LostReport[]
+  gallery     PetGallery[]
 
   @@map("user_pets")
+}
+
+// 7. Thư viện ảnh của Thú cưng (Pet Gallery)
+model PetGallery {
+  id          String   @id @default(uuid())
+  petId       String   @map("pet_id")
+  imageUrl    String   @map("image_url")
+  description String?  @db.Text
+  capturedAt  DateTime @map("captured_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Quan hệ: Một bức ảnh thuộc về một UserPet. Nếu Pet bị xóa, xóa luôn ảnh trong gallery (Cascade)
+  pet         UserPet  @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  @@map("pet_galleries")
 }
 
 // 3. Danh sách Giống loài Yêu thích - Phân hệ Bách Khoa Thư (Encyclopedia Favorites)

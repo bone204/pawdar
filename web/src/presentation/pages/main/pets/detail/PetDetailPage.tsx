@@ -3,12 +3,13 @@
 import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
-import { useGetPetByIdQuery } from "@/infrastructure/rtk/api/pet.api";
+import { useGetPetByIdQuery, useDeletePetGalleryMutation } from "@/infrastructure/rtk/api/pet.api";
 import { useGetBreedByIdQuery } from "@/infrastructure/rtk/api/breed.api";
 import { Button } from "@/presentation/components/ui/Button";
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { toPng } from "html-to-image";
 import { PetFormModal } from "../modal/PetFormModal";
+import { PetGalleryFormModal } from "../modal/PetGalleryFormModal";
 import { Toast } from "../MyPetsPage";
 
 interface PetDetailPageProps {
@@ -45,6 +46,13 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Gallery States
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [editingGalleryImage, setEditingGalleryImage] = useState<any>(null);
+  const [deletingGalleryImage, setDeletingGalleryImage] = useState<any>(null);
+  const [activeLightboxIndex, setActiveLightboxIndex] = useState<number | null>(null);
+  const [deletePetGallery, { isLoading: isDeletingGallery }] = useDeletePetGalleryMutation();
 
   // References for 3D card tilt animation
   const cardRef = useRef<HTMLDivElement>(null);
@@ -224,33 +232,86 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full max-w-7xl mx-auto py-4 px-2"
+      className="w-full select-none py-2"
     >
-      <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
-        
-        {/* Left Column: Round Avatar, Name, Edit Button */}
-        <div className="lg:col-span-5 flex flex-col items-center gap-8 py-6">
-          <div className="w-56 h-56 md:w-64 md:h-64 rounded-full border-4 border-primary/20 overflow-hidden shadow-lg shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={displayImage}
-              alt={pet.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tight">{pet.name}</h2>
-            <span className="text-sm font-bold bg-primary/10 text-primary px-4 py-1.5 rounded-full mt-3.5 inline-block select-none">
+      <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
+        {/* Left Column: Pet Profile Unified Card */}
+        <div className="lg:col-span-5 flex flex-col items-center gap-6 py-6">
+          <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 md:p-8 shadow-sm flex flex-col items-center relative overflow-hidden">
+            {/* Edit Button floating at the top-right */}
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="absolute top-4 right-4 bg-secondary/50 hover:bg-secondary text-foreground rounded-full w-8 h-8 flex items-center justify-center transition-all cursor-pointer border border-border/40 text-xs hover:scale-105 active:scale-95"
+              title="Chỉnh sửa hồ sơ"
+            >
+              ✏️
+            </button>
+
+            {/* Avatar */}
+            <div className="w-36 h-36 rounded-full border-4 border-primary/20 overflow-hidden shadow-md shrink-0 mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={displayImage}
+                alt={pet.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            {/* Basic Info */}
+            <h2 className="text-3xl font-black text-foreground tracking-tight text-center">{pet.name}</h2>
+            <span className="text-xs font-bold bg-primary/10 text-primary px-3.5 py-1 rounded-full mt-2 inline-block select-none">
               {pet.petType === "dog" ? "🐶 Chó" : "🐱 Mèo"}
             </span>
+
+            {/* Divider */}
+            <div className="w-full border-t border-border/60 my-5" />
+
+            {/* Stats Grid */}
+            <div className="w-full grid grid-cols-2 gap-y-4 gap-x-6 text-sm text-left">
+              <div>
+                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Giới tính</span>
+                <span className="font-bold text-foreground mt-0.5 block">
+                  {pet.gender === "male" ? "Đực ♂" : pet.gender === "female" ? "Cái ♀" : "Chưa xác định"}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Giống loài</span>
+                <span className="font-bold text-foreground mt-0.5 block truncate" title={breedLabel}>
+                  {breedLabel}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Tuổi đời</span>
+                <span className="font-bold text-foreground mt-0.5 block">
+                  {petAgeYrs.toFixed(1)} tuổi ({pet.ageMonths ?? 0} thg)
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Cân nặng</span>
+                <span className="font-bold text-foreground mt-0.5 block">
+                  {pet.weightKg != null ? `${pet.weightKg} kg` : "— kg"}
+                </span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Ngày tham gia Pawdar</span>
+                <span className="font-bold text-foreground mt-0.5 block">
+                  {new Date(pet.createdAt).toLocaleDateString("vi-VN", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+              {pet.description && (
+                <div className="col-span-2 border-t border-border/60 pt-3.5">
+                  <span className="text-[10px] text-muted font-black uppercase tracking-wider block mb-1">Mô tả / Ghi chú</span>
+                  <p className="text-xs text-muted-foreground font-medium leading-relaxed italic">
+                    "{pet.description}"
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-          <Button
-            variant="secondary"
-            className="w-full max-w-[240px] rounded-xl text-sm font-bold py-3.5 shadow-sm"
-            onClick={() => setIsFormOpen(true)}
-          >
-            Chỉnh sửa hồ sơ 📝
-          </Button>
         </div>
 
         {/* Right Column: Pet ID Card & Recommendations */}
@@ -388,6 +449,93 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
 
       </div>
 
+      {/* Pet Gallery Section */}
+      <div className="border-t border-border mt-16 pt-12">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl select-none">📸</span>
+            <div>
+              <h3 className="text-2xl font-black text-foreground">Thư viện ảnh</h3>
+              <p className="text-xs text-muted font-bold mt-1">
+                {pet.gallery?.length ?? 0} khoảnh khắc đáng nhớ của {pet.name}
+              </p>
+            </div>
+          </div>
+          {pet.gallery && pet.gallery.length > 0 && (
+            <Button
+              variant="primary"
+              onClick={() => {
+                setEditingGalleryImage(null);
+                setIsGalleryOpen(true);
+              }}
+              className="rounded-xl text-xs font-bold py-2.5 px-4 flex items-center gap-2"
+            >
+              Thêm ảnh mới ➕
+            </Button>
+          )}
+        </div>
+
+        {!pet.gallery || pet.gallery.length === 0 ? (
+          <div className="text-center py-16 bg-card border border-border border-dashed rounded-3xl p-8 select-none">
+            <span className="text-5xl mb-4 block">🖼️</span>
+            <h4 className="text-base font-bold text-foreground mb-1">Chưa có bức ảnh nào</h4>
+            <p className="text-xs text-muted mb-6">Hãy ghi lại những khoảnh khắc đáng yêu đầu tiên của {pet.name} nhé!</p>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setEditingGalleryImage(null);
+                setIsGalleryOpen(true);
+              }}
+              className="rounded-xl text-xs font-bold py-2.5"
+            >
+              Tải ảnh lên ngay 📸
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {pet.gallery.map((item: any, idx: number) => (
+              <div
+                key={item.id}
+                className="group relative bg-card border border-border rounded-2xl overflow-hidden aspect-square flex flex-col justify-end shadow-sm hover:shadow-md cursor-pointer transition-shadow"
+                onClick={() => setActiveLightboxIndex(idx)}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.imageUrl}
+                  alt={item.description || "Pet Gallery Image"}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white">
+                  <p className="text-xs font-semibold truncate">{item.description || "Khoảnh khắc đáng nhớ"}</p>
+                  <span className="text-[10px] opacity-75 font-bold mt-1">
+                    📅 {new Date(item.capturedAt).toLocaleDateString("vi-VN")}
+                  </span>
+                  <div className="flex gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => {
+                        setEditingGalleryImage(item);
+                        setIsGalleryOpen(true);
+                      }}
+                      className="bg-white/20 hover:bg-white/40 text-white rounded-lg p-1.5 transition-colors cursor-pointer text-xs font-bold"
+                      title="Chỉnh sửa"
+                    >
+                      ✏️ Sửa
+                    </button>
+                    <button
+                      onClick={() => setDeletingGalleryImage(item)}
+                      className="bg-danger/80 hover:bg-danger text-white rounded-lg p-1.5 transition-colors cursor-pointer text-xs font-bold"
+                      title="Xóa"
+                    >
+                      🗑️ Xóa
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <AnimatePresence>
         {isFormOpen && (
           <PetFormModal
@@ -397,8 +545,137 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
             onSuccess={_showToast}
           />
         )}
+        {isGalleryOpen && (
+          <PetGalleryFormModal
+            isOpen={isGalleryOpen}
+            petId={id}
+            editingImage={editingGalleryImage}
+            onClose={() => setIsGalleryOpen(false)}
+            onSuccess={_showToast}
+          />
+        )}
+        {deletingGalleryImage && (
+          <DeleteGalleryDialog
+            isOpen={!!deletingGalleryImage}
+            onConfirm={async () => {
+              try {
+                await deletePetGallery({ petId: id, id: deletingGalleryImage.id }).unwrap();
+                setDeletingGalleryImage(null);
+                _showToast("Đã xóa ảnh thành công 🗑️");
+              } catch (err) {
+                console.error(err);
+              }
+            }}
+            onCancel={() => setDeletingGalleryImage(null)}
+            isLoading={isDeletingGallery}
+          />
+        )}
         {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
       </AnimatePresence>
+
+      {/* Lightbox Overlay */}
+      {activeLightboxIndex !== null && pet.gallery && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col justify-center items-center p-4">
+          <button
+            onClick={() => setActiveLightboxIndex(null)}
+            className="absolute top-6 right-6 text-white text-3xl font-bold cursor-pointer bg-white/10 hover:bg-white/20 rounded-full w-12 h-12 flex items-center justify-center transition-colors z-50"
+          >
+            ✕
+          </button>
+
+          {activeLightboxIndex > 0 && (
+            <button
+              onClick={() => setActiveLightboxIndex(activeLightboxIndex - 1)}
+              className="absolute left-6 text-white text-3xl font-bold cursor-pointer bg-white/10 hover:bg-white/20 rounded-full w-12 h-12 flex items-center justify-center transition-colors z-50"
+            >
+              ‹
+            </button>
+          )}
+
+          {activeLightboxIndex < pet.gallery.length - 1 && (
+            <button
+              onClick={() => setActiveLightboxIndex(activeLightboxIndex + 1)}
+              className="absolute right-6 text-white text-3xl font-bold cursor-pointer bg-white/10 hover:bg-white/20 rounded-full w-12 h-12 flex items-center justify-center transition-colors z-50"
+            >
+              ›
+            </button>
+          )}
+
+          <div className="max-w-4xl max-h-[75vh] flex items-center justify-center relative select-none">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={pet.gallery[activeLightboxIndex].imageUrl}
+              alt={pet.gallery[activeLightboxIndex].description || "Lightbox Image"}
+              className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl"
+            />
+          </div>
+
+          <div className="text-center mt-6 max-w-2xl px-4 select-none">
+            <p className="text-white text-lg font-semibold">
+              {pet.gallery[activeLightboxIndex].description || "Khoảnh khắc đáng nhớ"}
+            </p>
+            <span className="text-sm text-neutral-400 font-bold mt-2 block">
+              📅 Ngày chụp: {new Date(pet.gallery[activeLightboxIndex].capturedAt).toLocaleDateString("vi-VN")}
+            </span>
+          </div>
+        </div>
+      )}
     </motion.div>
+  );
+};
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Delete Gallery Image Confirmation Dialog
+// ──────────────────────────────────────────────────────────────────────────────
+
+interface DeleteGalleryDialogProps {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}
+
+const DeleteGalleryDialog: React.FC<DeleteGalleryDialogProps> = ({
+  isOpen,
+  onConfirm,
+  onCancel,
+  isLoading,
+}) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.18 }}
+        className="relative w-full max-w-sm bg-card border border-border rounded-3xl p-6 shadow-2xl z-10"
+      >
+        <div className="text-center mb-5 flex flex-col items-center">
+          <div className="text-4xl mb-3">🗑️</div>
+          <h3 className="text-lg font-black text-foreground mb-2">Xóa ảnh khỏi thư viện?</h3>
+          <p className="text-sm text-muted leading-relaxed">
+            Hành động này sẽ xóa vĩnh viễn bức ảnh này khỏi thư viện ảnh của thú cưng. Bạn có chắc chắn?
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 rounded-xl border border-border text-sm font-bold text-foreground hover:bg-secondary/40 transition-colors cursor-pointer"
+          >
+            Hủy
+          </button>
+          <Button
+            variant="primary"
+            onClick={onConfirm}
+            isLoading={isLoading}
+            className="flex-1 bg-danger text-white hover:bg-danger/90 border-danger/10 shadow-none"
+          >
+            Xóa ảnh
+          </Button>
+        </div>
+      </motion.div>
+    </div>
   );
 };

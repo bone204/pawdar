@@ -18,6 +18,11 @@ export enum ResponseCode {
   GET_PET_DETAIL_SUCCESSFUL = 'get_pet_detail_successful',
   UPDATE_PET_SUCCESSFUL = 'update_pet_successful',
   DELETE_PET_SUCCESSFUL = 'delete_pet_successful',
+  CREATE_GALLERY_SUCCESSFUL = 'create_gallery_successful',
+  GET_GALLERY_SUCCESSFUL = 'get_gallery_successful',
+  GET_GALLERY_DETAIL_SUCCESSFUL = 'get_gallery_detail_successful',
+  UPDATE_GALLERY_SUCCESSFUL = 'update_gallery_successful',
+  DELETE_GALLERY_SUCCESSFUL = 'delete_gallery_successful',
 
   // ── Auth Error Codes ──────────────────────────────────────────────────────
   EMAIL_ALREADY_REGISTERED = 'email_already_registered',
@@ -37,6 +42,7 @@ export enum ResponseCode {
   PET_NOT_FOUND = 'pet_not_found',
   FORBIDDEN_PET_ACCESS = 'forbidden_pet_access',
   PET_ALREADY_DELETED = 'pet_already_deleted',
+  GALLERY_NOT_FOUND = 'gallery_not_found',
 
   // ── Generic Codes ─────────────────────────────────────────────────────────
   INTERNAL_SERVER_ERROR = 'internal_server_error',

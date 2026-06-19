@@ -10,6 +10,41 @@ export interface PetResponseDto {
   description?: string | null;
   avatarUrl?: string | null;
   createdAt: string;
+  gallery?: PetGalleryResponseDto[];
+}
+
+export interface PetGalleryResponseDto {
+  id: string;
+  petId: string;
+  imageUrl: string;
+  description?: string | null;
+  capturedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateGalleryRequestDto {
+  petId: string;
+  body: {
+    imageUrl: string;
+    description?: string;
+    capturedAt: string;
+  };
+}
+
+export interface UpdateGalleryRequestDto {
+  petId: string;
+  id: string;
+  body: {
+    imageUrl?: string;
+    description?: string;
+    capturedAt?: string;
+  };
+}
+
+export interface DeleteGalleryRequestDto {
+  petId: string;
+  id: string;
 }
 
 export interface PaginatedPetResponseDto {

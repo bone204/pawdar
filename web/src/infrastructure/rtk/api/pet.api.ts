@@ -7,6 +7,10 @@ import {
   GetPetsQueryDto,
   CreatePetRequestDto,
   UpdatePetRequestDto,
+  PetGalleryResponseDto,
+  CreateGalleryRequestDto,
+  UpdateGalleryRequestDto,
+  DeleteGalleryRequestDto,
 } from "@/application/dto/pet.dto";
 import { ApiSuccessResponse, ApiErrorResponse } from "@/application/dto/auth.dto";
 
@@ -22,7 +26,7 @@ const transformError = (response: any) => {
 export const petApi = createApi({
   reducerPath: "petApi",
   baseQuery: baseQueryWithAuth,
-  tagTypes: ["Pet"],
+  tagTypes: ["Pet", "PetGallery"],
   endpoints: (builder) => ({
     getPetsMe: builder.query<PaginatedPetResponseDto, GetPetsQueryDto>({
       query: (params) => ({
@@ -93,6 +97,63 @@ export const petApi = createApi({
       transformResponse: (response: ApiSuccessResponse<PetResponseDto>) => response.data,
       transformErrorResponse: transformError,
     }),
+
+    // --- Pet Gallery Endpoints ---
+    getPetGallery: builder.query<PetGalleryResponseDto[], string>({
+      query: (petId) => ({ url: `${API_ENDPOINTS.pets}/${petId}/gallery`, method: "GET" }),
+      providesTags: (result, error, petId) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "PetGallery" as const, id })),
+              { type: "PetGallery", id: `LIST_${petId}` },
+            ]
+          : [{ type: "PetGallery", id: `LIST_${petId}` }],
+      transformResponse: (response: ApiSuccessResponse<PetGalleryResponseDto[]>) => response.data,
+      transformErrorResponse: transformError,
+    }),
+
+    createPetGallery: builder.mutation<PetGalleryResponseDto, CreateGalleryRequestDto>({
+      query: ({ petId, body }) => ({
+        url: `${API_ENDPOINTS.pets}/${petId}/gallery`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (result, error, { petId }) => [
+        { type: "Pet", id: petId },
+        { type: "PetGallery", id: `LIST_${petId}` },
+      ],
+      transformResponse: (response: ApiSuccessResponse<PetGalleryResponseDto>) => response.data,
+      transformErrorResponse: transformError,
+    }),
+
+    updatePetGallery: builder.mutation<PetGalleryResponseDto, UpdateGalleryRequestDto>({
+      query: ({ petId, id, body }) => ({
+        url: `${API_ENDPOINTS.pets}/${petId}/gallery/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (result, error, { petId, id }) => [
+        { type: "Pet", id: petId },
+        { type: "PetGallery", id },
+        { type: "PetGallery", id: `LIST_${petId}` },
+      ],
+      transformResponse: (response: ApiSuccessResponse<PetGalleryResponseDto>) => response.data,
+      transformErrorResponse: transformError,
+    }),
+
+    deletePetGallery: builder.mutation<PetGalleryResponseDto, DeleteGalleryRequestDto>({
+      query: ({ petId, id }) => ({
+        url: `${API_ENDPOINTS.pets}/${petId}/gallery/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { petId, id }) => [
+        { type: "Pet", id: petId },
+        { type: "PetGallery", id },
+        { type: "PetGallery", id: `LIST_${petId}` },
+      ],
+      transformResponse: (response: ApiSuccessResponse<PetGalleryResponseDto>) => response.data,
+      transformErrorResponse: transformError,
+    }),
   }),
 });
 
@@ -103,4 +164,8 @@ export const {
   useCreatePetMutation,
   useUpdatePetMutation,
   useDeletePetMutation,
+  useGetPetGalleryQuery,
+  useCreatePetGalleryMutation,
+  useUpdatePetGalleryMutation,
+  useDeletePetGalleryMutation,
 } = petApi;
