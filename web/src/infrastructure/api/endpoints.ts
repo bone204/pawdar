@@ -9,4 +9,9 @@ export const API_ENDPOINTS = {
     login: "/auth/login",
     refresh: "/auth/refresh",
   },
+  breeds: "/breeds",
+  pets: "/pets",
+  upload: {
+    image: "/upload/image",
+  },
 } as const;

@@ -47,6 +47,6 @@ const templateDir = existsSync(join(__dirname, 'templates'))
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthRepository],
-  exports: [AuthService],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

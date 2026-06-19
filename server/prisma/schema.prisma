@@ -53,12 +53,30 @@ model UserPet {
   description String?  @db.Text
   avatarUrl   String?  @map("avatar_url")
   createdAt   DateTime @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   // Quan hệ: Một pet thuộc về một User. Nếu User bị xóa, xóa luôn hồ sơ Pet (Cascade)
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   lostReports LostReport[]
+  gallery     PetGallery[]
 
   @@map("user_pets")
+}
+
+// 7. Thư viện ảnh của Thú cưng (Pet Gallery)
+model PetGallery {
+  id          String   @id @default(uuid())
+  petId       String   @map("pet_id")
+  imageUrl    String   @map("image_url")
+  description String?  @db.Text
+  capturedAt  DateTime @map("captured_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Quan hệ: Một bức ảnh thuộc về một UserPet. Nếu Pet bị xóa, xóa luôn ảnh trong gallery (Cascade)
+  pet         UserPet  @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  @@map("pet_galleries")
 }
 
 // 3. Danh sách Giống loài Yêu thích - Phân hệ Bách Khoa Thư (Encyclopedia Favorites)
@@ -119,4 +137,35 @@ model LostReportImage {
   report    LostReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
   @@map("lost_report_images")
+}
+
+// 6. Danh sach Giong loai (Breeds) - Sync tu Cat API & Dog API, co ban dich tieng Viet
+model Breed {
+  id          String   @id              // Original ID from Cat/Dog API (e.g. "abys", "1")
+  petType     String   @map("pet_type") // "cat" | "dog"
+
+  // English fields - pulled directly from external API
+  nameEn        String  @map("name_en")
+  descriptionEn String? @db.Text @map("description_en")
+  temperamentEn String? @map("temperament_en") // e.g. "Active, Curious, Playful"
+  originEn      String? @map("origin_en")       // e.g. "Ethiopia"
+
+  // Vietnamese fields - auto-translated by Gemini AI script
+  nameVi        String? @map("name_vi")
+  descriptionVi String? @db.Text @map("description_vi")
+  temperamentVi String? @map("temperament_vi")
+  originVi      String? @map("origin_vi")
+
+  // Common fields - no translation needed
+  lifeSpan    String? @map("life_span")  // e.g. "12 - 16" (years)
+  weightKg    String? @map("weight_kg")  // e.g. "3 - 7" (kg range)
+  imageUrl    String? @map("image_url")
+  wikipediaUrl String? @map("wikipedia_url")
+
+  // Tracking fields
+  isTranslated Boolean  @default(false) @map("is_translated") // true after Gemini script runs
+  syncedAt     DateTime @default(now()) @map("synced_at")
+  updatedAt    DateTime @updatedAt      @map("updated_at")
+
+  @@map("breeds")
 }

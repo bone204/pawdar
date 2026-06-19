@@ -18,13 +18,20 @@ export const Header: React.FC = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Close mobile menu on scroll
       if (currentScrollY > 10) {
         setIsMenuOpen(false);
       }
 
-      // Hide header on scroll down, show on scroll up
+      // On mobile/tablet (< lg), always keep header visible
+      if (window.innerWidth < 1024) {
+        setIsVisible(true);
+        setLastScrollY(currentScrollY);
+        return;
+      }
+
+      // Hide header on scroll down, show on scroll up (desktop only)
       if (currentScrollY > lastScrollY && currentScrollY > 10) {
         setIsVisible(false);
       } else {
@@ -32,7 +39,7 @@ export const Header: React.FC = () => {
       }
       setLastScrollY(currentScrollY);
     };
- 
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
@@ -44,19 +51,19 @@ export const Header: React.FC = () => {
       }`}
     >
       <div className="container mx-auto px-6 relative">
-        <div className="bg-card/90 backdrop-blur-lg border border-border shadow-[0_4px_12px_rgba(62,46,37,0.05)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-full h-[76px] px-6 md:px-10 grid grid-cols-2 md:grid-cols-3 items-center transition-all duration-300">
+        <div className="bg-card/90 backdrop-blur-lg border border-border shadow-[0_4px_12px_rgba(62,46,37,0.05)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-full h-[76px] px-6 lg:px-10 grid grid-cols-2 lg:grid-cols-3 items-center transition-all duration-300">
           {/* Left Side: Logo */}
           <div className="flex justify-start items-center">
             <Link
               href={APP_ROUTES.home}
-              className="text-2xl sm:text-3xl font-black bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 cursor-pointer select-none truncate"
+              className="text-2xl font-black bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 cursor-pointer select-none truncate"
             >
-              🐶 {t("common.appName")}
+              🐾 {t("common.appName")}
             </Link>
           </div>
           
-          {/* Center: Navigation Links (Desktop) */}
-          <nav className="hidden md:flex justify-center items-center gap-6 lg:gap-10 text-[15px] font-bold text-foreground/80">
+          {/* Center: Navigation Links (Desktop lg+) */}
+          <nav className="hidden lg:flex justify-center items-center gap-8 text-[15px] font-bold text-foreground/80">
             <span className="relative py-2 hover:text-primary cursor-pointer transition-colors duration-300 select-none group">
               {t("common.navServices")}
               <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full"></span>
@@ -71,30 +78,30 @@ export const Header: React.FC = () => {
             </span>
           </nav>
  
-          {/* Right Side: Switchers & Action Buttons (Desktop) */}
-          <div className="hidden md:flex justify-end items-center gap-3 md:gap-8">
-            <div className="flex items-center gap-2 md:gap-4">
+          {/* Right Side: Switchers & Action Buttons (Desktop lg+) */}
+          <div className="hidden lg:flex justify-end items-center gap-4">
+            <div className="flex items-center gap-3">
               <LanguageSwitcher />
               <ThemeToggle />
             </div>
             
-            <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-3">
               <Link href={APP_ROUTES.register} className="cursor-pointer">
-                <Button variant="secondary" size="md" className="cursor-pointer select-none h-11 px-4 md:px-6 rounded-full text-sm md:text-base">
+                <Button variant="secondary" size="md" className="cursor-pointer select-none h-11 px-5 rounded-full text-sm whitespace-nowrap">
                   {t("auth.register")}
                 </Button>
               </Link>
               
               <Link href={APP_ROUTES.login} className="cursor-pointer">
-                <Button variant="primary" size="md" className="cursor-pointer select-none h-11 px-4 md:px-6 rounded-full text-sm md:text-base">
+                <Button variant="primary" size="md" className="cursor-pointer select-none h-11 px-5 rounded-full text-sm whitespace-nowrap">
                   {t("auth.login")}
                 </Button>
               </Link>
             </div>
           </div>
 
-          {/* Hamburger Menu & Toggles (Mobile) */}
-          <div className="flex md:hidden justify-end items-center gap-2.5">
+          {/* Hamburger Menu & Toggles (Mobile/Tablet < lg) */}
+          <div className="flex lg:hidden justify-end items-center gap-2.5">
             <LanguageSwitcher />
             <ThemeToggle />
             
@@ -124,7 +131,7 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu Drawer */}
+        {/* Mobile/Tablet Dropdown Menu Drawer */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
@@ -132,7 +139,7 @@ export const Header: React.FC = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="md:hidden absolute top-[90px] left-6 right-6 z-40 p-6 bg-card/95 backdrop-blur-xl border border-border rounded-4xl shadow-xl flex flex-col gap-6 text-center select-none"
+              className="lg:hidden absolute top-[90px] left-6 right-6 z-40 p-6 bg-card/95 backdrop-blur-xl border border-border rounded-4xl shadow-xl flex flex-col gap-6 text-center select-none"
             >
               {/* Navigation Links */}
               <nav className="flex flex-col gap-2 text-base font-bold text-foreground/80">

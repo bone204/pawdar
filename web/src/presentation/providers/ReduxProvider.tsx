@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Provider, useDispatch } from "react-redux";
 import { store } from "@/infrastructure/rtk/store";
 import { useRefreshMutation } from "@/infrastructure/rtk/api/auth.api";
-import { clearAuthState } from "@/infrastructure/rtk/auth.slice";
+import { clearAuthState, setAuthenticatedSession } from "@/infrastructure/rtk/auth.slice";
 
 interface ReduxProviderProps {
   children: React.ReactNode;
@@ -21,7 +21,19 @@ const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) 
       if (loggedInFlag === "true") {
         try {
           // Perform silent refresh to get initial accessToken
-          await refresh().unwrap();
+          const result = await refresh().unwrap();
+          const savedUser = localStorage.getItem("pawdar-user");
+          if (savedUser) {
+            const user = JSON.parse(savedUser);
+            dispatch(
+              setAuthenticatedSession({
+                accessToken: result.accessToken,
+                user,
+              })
+            );
+          } else {
+            dispatch(clearAuthState());
+          }
         } catch (error) {
           console.error("Failed to restore session on initialization", error);
           dispatch(clearAuthState());
