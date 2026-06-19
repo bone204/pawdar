@@ -9,6 +9,8 @@
     "dist",
     "**/*spec.ts",
     "prisma.config.ts",
-    "prisma.config.d.ts"
+    "prisma.config.d.ts",
+    "prisma",
+    "scripts"
   ]
 }

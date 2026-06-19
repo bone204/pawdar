@@ -4,4 +4,5 @@ export const APP_ROUTES = {
   register: "/register",
   verifyEmail: "/verify-email",
   dashboard: "/dashboard",
+  profile: "/dashboard/profile",
 } as const;

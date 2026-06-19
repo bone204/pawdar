@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routes";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
+import { AppSidebar, NavItem } from "@/presentation/components/sidebar/AppSidebar";
 
 export default function MainLayout({
   children,
@@ -19,7 +20,23 @@ export default function MainLayout({
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    if (isProfileMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isProfileMenuOpen]);
 
   const _onLogoutPressed = () => {
     dispatch(clearAuthState());
@@ -35,78 +52,97 @@ export default function MainLayout({
         .toUpperCase()
     : "PT";
 
+  const navItems: NavItem[] = [
+    {
+      id: "dashboard",
+      label: t("main.dashboard") || "Dashboard",
+      route: APP_ROUTES.dashboard,
+      icon: "📊",
+    },
+  ];
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden transition-colors duration-300">
-      {/* Sidebar Panel */}
-      <aside
-        className={`${
-          isSidebarOpen ? "w-64" : "w-20"
-        } shrink-0 bg-card border-r border-border flex flex-col justify-between p-6 transition-all duration-300 ease-out`}
-      >
-        <div className="flex flex-col gap-10">
-          {/* Logo */}
-          <div className="flex items-center justify-between">
-            <Link href={APP_ROUTES.home} className="flex items-center gap-2 select-none">
-              <span className="text-2xl">🐶</span>
-              {isSidebarOpen && (
-                <span className="font-black text-lg bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">
-                  {t("common.appName")}
-                </span>
-              )}
-            </Link>
-            
-            {/* Toggle Arrow */}
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-1 hover:bg-secondary rounded-lg transition-colors cursor-pointer"
-            >
-              {isSidebarOpen ? "◀" : "▶"}
-            </button>
-          </div>
-
-          {/* Nav Items */}
-          <nav className="flex flex-col gap-2">
-            <Link
-              href={APP_ROUTES.dashboard}
-              className="flex items-center gap-4 px-4 py-3 bg-primary/10 text-primary rounded-xl font-bold transition-all duration-300"
-            >
-              <span>📊</span>
-              {isSidebarOpen && <span>{t("main.dashboard")}</span>}
-            </Link>
-          </nav>
-        </div>
-
-        {/* Logout at bottom */}
-        <button
-          onClick={_onLogoutPressed}
-          className="flex items-center gap-4 px-4 py-3 text-muted hover:text-danger hover:bg-danger/10 rounded-xl font-medium transition-all duration-300 cursor-pointer"
-        >
-          <span>🚪</span>
-          {isSidebarOpen && <span>{t("common.logout")}</span>}
-        </button>
-      </aside>
+      <AppSidebar
+        navItems={navItems}
+        title={t("common.appName") || "PAWDAR"}
+        userInitials={userInitials}
+        userName={user?.fullName || "Pawdar User"}
+        userEmail={user?.email}
+        onLogout={_onLogoutPressed}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+      />
 
       {/* Main Container */}
       <div className="flex-grow flex flex-col min-w-0">
         {/* Topbar Header */}
-        <header className="h-20 border-b border-border bg-card/50 backdrop-blur-md px-8 flex items-center justify-between shrink-0 transition-colors duration-300">
-          <div className="font-bold text-lg select-none text-foreground">
-            {t("main.dashboard")}
+        <header className="h-20 border-b border-border bg-card/50 backdrop-blur-md px-4 md:px-8 flex items-center justify-between shrink-0 transition-colors duration-300 relative z-40">
+          <div className="flex items-center gap-3">
+            {/* Mobile Hamburger */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary/50 active:scale-95 transition-all cursor-pointer"
+              aria-label="Open menu"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+            <div className="font-bold text-lg select-none text-foreground hidden md:block">
+              {t("main.dashboard")}
+            </div>
+            {/* App name on mobile top bar */}
+            <div className="font-black text-lg text-foreground md:hidden select-none">
+              {t("common.appName") || "PAWDAR"}
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 md:gap-6">
             <LanguageSwitcher />
             <ThemeToggle />
             
-            {/* User Initials Badge */}
-            <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-[0_4px_12px_rgba(217,106,38,0.2)] select-none">
-              {userInitials}
+            {/* User Profile Dropdown */}
+            <div className="relative" ref={profileDropdownRef}>
+              <button
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-[0_4px_12px_rgba(201,109,46,0.2)] dark:shadow-[0_4px_12px_rgba(234,168,94,0.25)] select-none shrink-0 cursor-pointer active:scale-95 transition-transform hover:brightness-110"
+              >
+                {userInitials}
+              </button>
+              
+              {isProfileMenuOpen && (
+                <div className="absolute top-14 right-0 w-64 bg-card border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                  <div className="px-3 py-3 border-b border-border/50 mb-1">
+                    <p className="text-sm font-bold truncate">{user?.fullName || "Pawdar User"}</p>
+                    <p className="text-xs text-muted truncate mt-0.5">{user?.email || "No email"}</p>
+                  </div>
+                  
+                  <Link
+                    href={APP_ROUTES.profile}
+                    className="flex items-center gap-3 w-full p-3 rounded-xl text-foreground hover:bg-secondary/50 transition-colors font-bold text-sm"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                  >
+                    <span className="flex items-center justify-center w-5 h-5 text-lg">👤</span>
+                    {t("common.profile") || "Hồ sơ cá nhân"}
+                  </Link>
+                  
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      _onLogoutPressed();
+                    }}
+                    className="flex items-center gap-3 w-full p-3 rounded-xl text-danger hover:bg-danger/10 transition-colors font-bold text-sm cursor-pointer"
+                  >
+                    <span className="flex items-center justify-center w-5 h-5 text-lg">🚪</span>
+                    {t("common.logout")}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
 
         {/* Scrollable Dashboard View */}
-        <main className="flex-grow overflow-y-auto p-8 bg-background">
+        <main className="flex-grow overflow-y-auto p-4 md:p-8 bg-background">
           <div className="max-w-5xl mx-auto">
             {children}
           </div>

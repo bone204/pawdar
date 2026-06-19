@@ -192,6 +192,10 @@
     }
 
   },
+  "sidebar": {
+    "main_menu": "Main Menu",
+    "close_menu": "Collapse"
+  },
   "main": {
     "dashboard": "Dashboard",
     "welcome": "Welcome back",

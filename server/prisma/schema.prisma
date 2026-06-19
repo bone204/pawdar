@@ -120,3 +120,34 @@ model LostReportImage {
 
   @@map("lost_report_images")
 }
+
+// 6. Danh sach Giong loai (Breeds) - Sync tu Cat API & Dog API, co ban dich tieng Viet
+model Breed {
+  id          String   @id              // Original ID from Cat/Dog API (e.g. "abys", "1")
+  petType     String   @map("pet_type") // "cat" | "dog"
+
+  // English fields - pulled directly from external API
+  nameEn        String  @map("name_en")
+  descriptionEn String? @db.Text @map("description_en")
+  temperamentEn String? @map("temperament_en") // e.g. "Active, Curious, Playful"
+  originEn      String? @map("origin_en")       // e.g. "Ethiopia"
+
+  // Vietnamese fields - auto-translated by Gemini AI script
+  nameVi        String? @map("name_vi")
+  descriptionVi String? @db.Text @map("description_vi")
+  temperamentVi String? @map("temperament_vi")
+  originVi      String? @map("origin_vi")
+
+  // Common fields - no translation needed
+  lifeSpan    String? @map("life_span")  // e.g. "12 - 16" (years)
+  weightKg    String? @map("weight_kg")  // e.g. "3 - 7" (kg range)
+  imageUrl    String? @map("image_url")
+  wikipediaUrl String? @map("wikipedia_url")
+
+  // Tracking fields
+  isTranslated Boolean  @default(false) @map("is_translated") // true after Gemini script runs
+  syncedAt     DateTime @default(now()) @map("synced_at")
+  updatedAt    DateTime @updatedAt      @map("updated_at")
+
+  @@map("breeds")
+}

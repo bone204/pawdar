@@ -192,6 +192,10 @@
     }
 
   },
+  "sidebar": {
+    "main_menu": "Menu chính",
+    "close_menu": "Thu gọn"
+  },
   "main": {
     "dashboard": "Bảng Điều Khiển",
     "welcome": "Chào mừng bạn quay trở lại",

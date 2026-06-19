@@ -58,7 +58,7 @@ export const Header: React.FC = () => {
               href={APP_ROUTES.home}
               className="text-2xl font-black bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 cursor-pointer select-none truncate"
             >
-              🐶 {t("common.appName")}
+              🐾 {t("common.appName")}
             </Link>
           </div>
           
