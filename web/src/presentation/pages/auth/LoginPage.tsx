@@ -9,10 +9,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routes";
 import { useLoginMutation } from "@/infrastructure/rtk/api/auth.api";
-import { useDispatch } from "react-redux";
-import { setAuthenticatedSession } from "@/infrastructure/rtk/auth.slice";
+import { useDispatch, useSelector } from "react-redux";
+import { setAuthenticatedSession, selectIsAuthenticated } from "@/infrastructure/rtk/auth.slice";
 import dynamic from "next/dynamic";
 import { LOTTIES } from "@/shared/constants/lotties";
+import { useEffect } from "react";
 
 const LottiePlayer = dynamic(
   () => import("@/presentation/components/ui/LottiePlayer"),
@@ -24,6 +25,13 @@ export const LoginPage: React.FC = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const [login] = useLoginMutation();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push(APP_ROUTES.dashboard);
+    }
+  }, [isAuthenticated, router]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,6 +75,11 @@ export const LoginPage: React.FC = () => {
 
       router.push(APP_ROUTES.dashboard);
     } catch (err: any) {
+      console.log("Login error object:", err);
+      if (err?.code === "email_not_verified") {
+        router.push(`${APP_ROUTES.verifyEmail}?email=${encodeURIComponent(email)}&resend=true`);
+        return;
+      }
       setErrors({ general: err.message || "Failed to log in" });
     } finally {
       setIsLoading(false);

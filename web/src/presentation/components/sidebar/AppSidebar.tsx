@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { APP_ROUTES } from "@/shared/constants/routes";
 import { PawPrintIcon, LogOutIcon } from "@/presentation/components/ui/Icons";
+import { AppLogo } from "@/presentation/components/ui/AppLogo";
 
 export interface NavItem {
   id: string;
@@ -54,12 +55,12 @@ export function AppSidebar({
           <div className="relative flex w-72 max-w-[80vw] flex-col bg-card h-full p-5 border-r border-border shadow-2xl z-50 animate-in slide-in-from-left duration-300">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-border/80">
-              <Link href={APP_ROUTES.dashboard} className="flex items-center gap-2 select-none group" onClick={() => setIsMobileMenuOpen(false)}>
-                <PawPrintIcon className="w-7 h-7 text-primary group-hover:scale-110 transition-transform duration-300" />
-                <span className="font-black text-2xl bg-linear-to-r from-primary to-amber-600 bg-clip-text text-transparent">
-                  {title}
-                </span>
-              </Link>
+              <AppLogo
+                href={APP_ROUTES.dashboard}
+                useReactIcon
+                onClick={() => setIsMobileMenuOpen(false)}
+                iconClassName="w-7 h-7"
+              />
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-secondary/60 active:scale-95 transition-all cursor-pointer"

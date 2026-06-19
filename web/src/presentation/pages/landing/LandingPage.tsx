@@ -1,6 +1,6 @@
 "use client";
  
-import React from "react";
+import React, { useEffect } from "react";
 import { Header } from "@/presentation/components/Header";
 import { Footer } from "@/presentation/components/Footer";
 import { HeroSection } from "@/presentation/pages/landing/sections/HeroSection";
@@ -10,8 +10,21 @@ import { ShowcaseVideoSection } from "@/presentation/pages/landing/sections/Show
 import { TestimonialsSection } from "@/presentation/pages/landing/sections/TestimonialsSection";
 import { PetIdCreatorSection } from "@/presentation/pages/landing/sections/PetIdCreatorSection";
 import { FAQSection } from "@/presentation/pages/landing/sections/FAQSection";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated } from "@/infrastructure/rtk/auth.slice";
+import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/shared/constants/routes";
  
 export const LandingPage: React.FC = () => {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push(APP_ROUTES.dashboard);
+    }
+  }, [isAuthenticated, router]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
