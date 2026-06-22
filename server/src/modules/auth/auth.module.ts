@@ -34,6 +34,7 @@ const templateDir = existsSync(join(__dirname, 'templates'))
         },
         connectionTimeout: 10000, // 10 seconds timeout
         socketTimeout: 10000,
+        family: 4, // Force IPv4 to prevent ENETUNREACH on IPv6 in environments like Docker
       },
       defaults: {
         from: `"Pawdar 🐾" <${process.env.MAIL_USER}>`,
