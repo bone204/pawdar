@@ -15,7 +15,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.ad
 const templateDir = existsSync(join(__dirname, 'templates'))
   ? join(__dirname, 'templates')
   : join(__dirname, '..', '..', '..', 'modules', 'auth', 'templates');
-
+//
 @Module({
   imports: [
     PrismaModule,
