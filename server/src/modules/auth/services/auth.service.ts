@@ -8,8 +8,10 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { MailerService } from '@nestjs-modules/mailer';
 import { AuthRepository } from '../repositories/auth.repository';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as handlebars from 'handlebars';
 import { SignUpDto } from '../dto/signup.dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { ResendEmailDto } from '../dto/resend-email.dto';
@@ -26,7 +28,6 @@ export class AuthService {
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
-    private readonly mailerService: MailerService,
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
@@ -262,17 +263,53 @@ export class AuthService {
     const appUrl = process.env.APP_URL || 'http://localhost:3000';
     const verifyUrl = `${appUrl}/verify-email?token=${token}`;
 
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      this.logger.error('RESEND_API_KEY is not configured. Cannot send verification email.');
+      return;
+    }
+
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Pawdar <onboarding@resend.dev>';
+
     try {
-      await this.mailerService.sendMail({
-        to: email,
-        subject: '🐾 Verify your Pawdar account',
-        template: 'verify-email',
-        context: {
-          fullName,
-          verifyUrl,
-        },
+      // Resolve templates directory
+      const templateDir = fs.existsSync(path.join(__dirname, 'templates'))
+        ? path.join(__dirname, 'templates')
+        : path.join(__dirname, '..', '..', '..', 'modules', 'auth', 'templates');
+      
+      const templatePath = path.join(templateDir, 'verify-email.hbs');
+      if (!fs.existsSync(templatePath)) {
+        throw new Error(`Email template not found at path: ${templatePath}`);
+      }
+
+      const templateSource = fs.readFileSync(templatePath, 'utf8');
+      const compiledTemplate = handlebars.compile(templateSource);
+      const html = compiledTemplate({
+        fullName,
+        verifyUrl,
       });
-      this.logger.log(`Verification email sent to ${email}`);
+
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [email],
+          subject: '🐾 Verify your Pawdar account',
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Resend API returned status ${response.status}: ${errorText}`);
+      }
+
+      const result = (await response.json()) as { id: string };
+      this.logger.log(`Verification email sent to ${email} successfully via Resend. ID: ${result.id}`);
     } catch (error) {
       // Log error but don't block the response — user already created
       this.logger.error(`Failed to send verification email to ${email}`, error);
