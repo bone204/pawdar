@@ -36,6 +36,7 @@ model User {
   pets                 UserPet[]
   encyclopediaFavorites EncyclopediaFavorite[]
   lostReports          LostReport[]
+  posts                Post[]
 
   @@map("users")
 }
@@ -168,4 +169,21 @@ model Breed {
   updatedAt    DateTime @updatedAt      @map("updated_at")
 
   @@map("breeds")
+}
+
+model Post {
+  id               String   @id @default(uuid())
+  title            String
+  content          String   @db.Text
+  imageUrl         String?  @map("image_url")
+  status           String   @default("pending") // pending, approved, rejected
+  moderationLabel  String?  @map("moderation_label") // e.g. "clean", "profanity", "spam"
+  moderationReason String?  @db.Text @map("moderation_reason")
+  userId           String   @map("user_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("posts")
 }

@@ -10,7 +10,7 @@ import { APP_ROUTES } from "@/shared/constants/routes";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { AppSidebar, NavItem } from "@/presentation/components/sidebar/AppSidebar";
-import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon } from "@/presentation/components/ui/Icons";
+import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon, TagIcon } from "@/presentation/components/ui/Icons";
 import { useGetPetByIdQuery } from "@/infrastructure/rtk/api/pet.api";
 
 export default function MainLayout({
@@ -72,7 +72,7 @@ export default function MainLayout({
       id: "breeds",
       label: t("main.breeds") || "Giống Loài Thú Cưng",
       route: APP_ROUTES.breeds,
-      icon: <PawPrintIcon className="w-5 h-5" />,
+      icon: <TagIcon className="w-5 h-5" />,
     },
   ];
 
