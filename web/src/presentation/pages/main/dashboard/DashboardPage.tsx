@@ -87,7 +87,7 @@ export const DashboardPage: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Fetch approved posts
-  const { data, isFetching, isError } = useGetApprovedPostsQuery({
+  const { data, isLoading, isFetching, isError } = useGetApprovedPostsQuery({
     page,
     limit,
     search: search || undefined,
@@ -178,7 +178,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Posts List */}
-      {isFetching ? (
+      {isLoading ? (
         <div className="flex flex-col gap-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="bg-card border border-border/70 rounded-2xl overflow-hidden animate-pulse flex flex-col">

@@ -1,9 +1,15 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import type { PostResponseDto } from "@/infrastructure/rtk/api/post.api";
+import { 
+  type PostResponseDto, 
+  useReactToPostMutation,
+} from "@/infrastructure/rtk/api/post.api";
 import { motion, AnimatePresence } from "framer-motion";
 import { EditIcon, TrashIcon } from "@/presentation/components/ui/Icons";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
+import { ReactionsModal, REACTION_MAP } from "./ReactionsModal";
+import { CommentsModal } from "./CommentsModal";
+import { useSelector } from "react-redux";
 
 interface PostCardProps {
   post: PostResponseDto;
@@ -11,6 +17,15 @@ interface PostCardProps {
   onEdit: (post: PostResponseDto) => void;
   onDelete: (postId: string) => void;
 }
+
+const REACTION_OPTIONS = [
+  { type: "LIKE", emoji: "👍", colorClass: "text-blue-500" },
+  { type: "LOVE", emoji: "❤️", colorClass: "text-rose-500" },
+  { type: "HAHA", emoji: "😆", colorClass: "text-amber-500" },
+  { type: "WOW", emoji: "😮", colorClass: "text-amber-500" },
+  { type: "SAD", emoji: "😢", colorClass: "text-sky-500" },
+  { type: "ANGRY", emoji: "😡", colorClass: "text-red-500" },
+];
 
 export const PostCard: React.FC<PostCardProps> = ({
   post,
@@ -20,11 +35,31 @@ export const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const { t, locale } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(Math.floor(Math.random() * 15) + 3);
-  const [commentsCount] = useState(Math.floor(Math.random() * 8) + 1);
   const [showMenu, setShowMenu] = useState(false);
+  const [showReactionsPopover, setShowReactionsPopover] = useState(false);
+  const [showReactionsModal, setShowReactionsModal] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+
+  // Lấy user hiện tại từ auth state trong Redux
+  const { user: currentUser } = useSelector((state: any) => state.auth);
+
+  // Local state for instant reactions/comments updates (Optimistic UI)
+  const [myReaction, setMyReaction] = useState<string | null>(post.myReaction || null);
+  const [reactionsCount, setReactionsCount] = useState<number>(post.reactionsCount || 0);
+  const [reactionStats, setReactionStats] = useState<Record<string, number>>(post.reactionStats || {});
+  const [commentsCount, setCommentsCount] = useState<number>(post.commentsCount || 0);
+
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // RTK Mutations
+  const [reactToPost] = useReactToPostMutation();
+
+  useEffect(() => {
+    setMyReaction(post.myReaction || null);
+    setReactionsCount(post.reactionsCount || 0);
+    setReactionStats(post.reactionStats || {});
+    setCommentsCount(post.commentsCount || 0);
+  }, [post]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -75,14 +110,68 @@ export const PostCard: React.FC<PostCardProps> = ({
     }
   };
 
-  const handleLike = () => {
-    if (liked) {
-      setLiked(false);
-      setLikesCount((c) => c - 1);
+  const handleReact = async (type: string) => {
+    setShowReactionsPopover(false);
+    
+    // Save old states for rollback
+    const oldMyReaction = myReaction;
+    const oldStats = { ...reactionStats };
+    const oldCount = reactionsCount;
+
+    // Optimistic UI updates
+    if (myReaction === type) {
+      // Toggle off
+      setMyReaction(null);
+      setReactionsCount((c) => Math.max(0, c - 1));
+      setReactionStats((prev) => ({
+        ...prev,
+        [type]: Math.max(0, (prev[type] || 0) - 1),
+      }));
     } else {
-      setLiked(true);
-      setLikesCount((c) => c + 1);
+      // Change reaction or new reaction
+      setMyReaction(type);
+      // Only increase total count if this is a brand-new reaction (no previous reaction)
+      if (!oldMyReaction) {
+        setReactionsCount((c) => c + 1);
+      }
+      setReactionStats((prev) => {
+        const next = { ...prev };
+        if (oldMyReaction) {
+          next[oldMyReaction] = Math.max(0, (next[oldMyReaction] || 0) - 1);
+        }
+        next[type] = (next[type] || 0) + 1;
+        return next;
+      });
     }
+
+    try {
+      await reactToPost({ id: post.id, type }).unwrap();
+    } catch {
+      // Rollback on failure
+      setMyReaction(oldMyReaction);
+      setReactionsCount(oldCount);
+      setReactionStats(oldStats);
+    }
+  };
+
+  const handleLikeClick = () => {
+    if (myReaction) {
+      // If already reacted, clicking the button removes it
+      handleReact(myReaction);
+    } else {
+      // Default reaction is LIKE
+      handleReact("LIKE");
+    }
+  };
+
+
+
+  const showPopover = () => {
+    setShowReactionsPopover(true);
+  };
+
+  const hidePopover = () => {
+    setShowReactionsPopover(false);
   };
 
   const hasLongContent = post.content.length > 200;
@@ -90,6 +179,9 @@ export const PostCard: React.FC<PostCardProps> = ({
     hasLongContent && !isExpanded
       ? `${post.content.slice(0, 200)}...`
       : post.content;
+
+  // Find active reaction properties
+  const activeReactionMeta = myReaction ? REACTION_MAP[myReaction] : null;
 
   return (
     <motion.div
@@ -215,46 +307,115 @@ export const PostCard: React.FC<PostCardProps> = ({
       )}
 
       {/* Likes & Comments Counters */}
-      <div className="px-5 py-3 flex items-center justify-between text-xs text-muted font-bold border-t border-b border-border/30 bg-secondary/5">
-        <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-rose-500 text-white shadow-xs">
-            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <div className="px-5 py-3 flex items-center justify-between text-xs text-muted font-bold border-t border-b border-border/30 bg-secondary/5 select-none">
+        {/* Hover/click stats to open reactions modal */}
+        <div 
+          className="flex items-center gap-1.5 cursor-pointer"
+          onClick={() => reactionsCount > 0 && setShowReactionsModal(true)}
+        >
+          {reactionsCount > 0 && (
+            <div className="flex items-center -space-x-1.5 mr-0.5">
+              {Object.entries(reactionStats)
+                .filter(([_, count]) => count > 0)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(([type]) => (
+                  <span 
+                    key={type} 
+                    className="flex items-center justify-center w-5 h-5 rounded-full bg-card border border-border shadow-xs text-xs"
+                  >
+                    {REACTION_MAP[type]?.emoji || "👍"}
+                  </span>
+                ))}
+            </div>
+          )}
+          <span className={`text-foreground/75 font-black ${reactionsCount > 0 ? "hover:underline" : ""}`}>
+            {reactionsCount === 0 
+              ? `0 ${t("posts.like").toLowerCase()}` 
+              : t("posts.reactions").replace("{count}", String(reactionsCount))}
           </span>
-          <span className="text-foreground/75">{t("posts.likes").replace("{count}", String(likesCount))}</span>
         </div>
-        <div className="text-foreground/75">
+        
+        <div 
+          className="text-foreground/75 cursor-pointer hover:underline"
+          onClick={() => setShowComments(!showComments)}
+        >
           <span>{t("posts.comments").replace("{count}", String(commentsCount))}</span>
         </div>
       </div>
 
       {/* Real Actions Footer */}
-      <div className="px-3 py-2 flex items-center justify-between gap-2.5 text-xs font-bold text-muted border-t border-border/10">
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={handleLike}
-          className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-secondary/40 transition-colors cursor-pointer ${
-            liked ? "text-primary bg-primary/5" : "hover:text-foreground"
-          }`}
+      <div className="px-3 py-2 flex items-center justify-between gap-2.5 text-xs font-bold text-muted border-t border-border/10 relative">
+        
+        {/* Multi-Reactions Hover Tooltip */}
+        <AnimatePresence>
+          {showReactionsPopover && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: -45, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              onMouseEnter={showPopover}
+              onMouseLeave={hidePopover}
+              className="absolute left-4 bg-card/90 backdrop-blur-md border border-border shadow-xl rounded-full px-2 py-1.5 z-40 flex items-center gap-2"
+            >
+              {REACTION_OPTIONS.map((opt) => (
+                <motion.button
+                  key={opt.type}
+                  whileHover={{ scale: 1.35, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleReact(opt.type)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xl cursor-pointer hover:bg-secondary/50 transition-colors"
+                  title={opt.type}
+                >
+                  {opt.emoji}
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Reaction Button (Direct click or hover trigger) */}
+        <div
+          onMouseEnter={showPopover}
+          onMouseLeave={hidePopover}
+          className="flex-1 relative"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill={liked ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-4 h-4"
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={handleLikeClick}
+            className={`w-full py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer font-bold ${
+              activeReactionMeta
+                ? `${activeReactionMeta.colorClass} ${activeReactionMeta.bgClass} border border-current/20 hover:brightness-95`
+                : "text-muted hover:text-foreground hover:bg-secondary/40 font-semibold"
+            }`}
           >
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-          </svg>
-          {t("posts.like")}
-        </motion.button>
+            {activeReactionMeta ? (
+              <span className="text-base leading-none">{activeReactionMeta.emoji}</span>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-4 h-4"
+              >
+                <path d="M7 10v12" />
+                <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+              </svg>
+            )}
+            {activeReactionMeta ? t(activeReactionMeta.labelKey) : t("posts.like")}
+          </motion.button>
+        </div>
 
         <motion.button
           whileTap={{ scale: 0.96 }}
+          onClick={() => setShowComments(true)}
           className="flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 hover:text-foreground hover:bg-secondary/40 transition-colors cursor-pointer"
         >
           <svg
@@ -297,6 +458,23 @@ export const PostCard: React.FC<PostCardProps> = ({
           {t("posts.share")}
         </motion.button>
       </div>
+
+      {/* Reactions List Modal */}
+      <ReactionsModal
+        isOpen={showReactionsModal}
+        onClose={() => setShowReactionsModal(false)}
+        postId={post.id}
+        reactionsCount={reactionsCount}
+        reactionStats={reactionStats}
+      />
+
+      {/* Comments List Modal */}
+      <CommentsModal
+        isOpen={showComments}
+        onClose={() => setShowComments(false)}
+        post={post}
+        currentUser={currentUser}
+      />
     </motion.div>
   );
 };

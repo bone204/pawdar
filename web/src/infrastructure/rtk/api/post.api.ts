@@ -21,6 +21,78 @@ export interface PostResponseDto {
   createdAt: string;
   updatedAt: string;
   user: PostUserDto;
+  reactionsCount: number;
+  reactionStats: Record<string, number>;
+  myReaction: string | null;
+  commentsCount: number;
+}
+
+export interface PostCommentUserDto {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+}
+
+export interface PostCommentDto {
+  id: string;
+  postId: string;
+  userId: string;
+  parentId: string | null;
+  content: string;
+  isApproved: boolean;
+  moderationLabel: string | null;
+  moderationReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: PostCommentUserDto;
+  replies?: PostCommentDto[];
+}
+
+export interface PaginatedCommentResponseDto {
+  items: PostCommentDto[];
+  total: number;
+  totalPages: number;
+}
+
+export interface PostReactionUserDto {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+}
+
+export interface PostReactionDto {
+  id: string;
+  postId: string;
+  userId: string;
+  type: string;
+  createdAt: string;
+  user: PostReactionUserDto;
+}
+
+export interface PaginatedReactionResponseDto {
+  items: PostReactionDto[];
+  total: number;
+  totalPages: number;
+}
+
+export interface GetPostCommentsQueryDto {
+  postId: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CreatePostCommentRequestDto {
+  postId: string;
+  content: string;
+  parentId?: string;
+  lang?: string;
+}
+
+export interface GetPostReactionsQueryDto {
+  postId: string;
+  type?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface PaginatedPostResponseDto {
@@ -59,7 +131,7 @@ const transformError = (response: any) => {
 export const postApi = createApi({
   reducerPath: "postApi",
   baseQuery: baseQueryWithAuth,
-  tagTypes: ["Post"],
+  tagTypes: ["Post", "Comment"],
   endpoints: (builder) => ({
     getApprovedPosts: builder.query<PaginatedPostResponseDto, GetPostsQueryDto>({
       query: (params) => ({
@@ -147,6 +219,65 @@ export const postApi = createApi({
       transformResponse: (response: ApiSuccessResponse<PostResponseDto>) => response.data,
       transformErrorResponse: transformError,
     }),
+
+    reactToPost: builder.mutation<{ reacted: boolean; type: string | null }, { id: string; type: string }>({
+      query: ({ id, type }) => ({
+        url: `${API_ENDPOINTS.posts.base}/${id}/react`,
+        method: "POST",
+        body: { type },
+      }),
+      transformResponse: (response: ApiSuccessResponse<{ reacted: boolean; type: string | null }>) => response.data,
+      transformErrorResponse: transformError,
+    }),
+
+    getPostReactions: builder.query<PaginatedReactionResponseDto, GetPostReactionsQueryDto>({
+      query: ({ postId, ...params }) => ({
+        url: `${API_ENDPOINTS.posts.base}/${postId}/reactions`,
+        method: "GET",
+        params,
+      }),
+      transformResponse: (response: ApiSuccessResponse<PaginatedReactionResponseDto>) => response.data,
+      transformErrorResponse: transformError,
+    }),
+
+    getPostComments: builder.query<PaginatedCommentResponseDto, GetPostCommentsQueryDto>({
+      query: ({ postId, ...params }) => ({
+        url: `${API_ENDPOINTS.posts.base}/${postId}/comments`,
+        method: "GET",
+        params,
+      }),
+      providesTags: (result, error, { postId }) => [
+        { type: "Comment", id: `LIST_${postId}` },
+        ...(result ? result.items.map(({ id }) => ({ type: "Comment" as const, id })) : []),
+      ],
+      transformResponse: (response: ApiSuccessResponse<PaginatedCommentResponseDto>) => response.data,
+      transformErrorResponse: transformError,
+    }),
+    createPostComment: builder.mutation<PostCommentDto, CreatePostCommentRequestDto>({
+      query: ({ postId, content, parentId, lang }) => ({
+        url: `${API_ENDPOINTS.posts.base}/${postId}/comments`,
+        method: "POST",
+        body: { content, parentId, lang },
+      }),
+      invalidatesTags: (result, error, { postId }) => [
+        { type: "Post", id: postId },
+        { type: "Comment", id: `LIST_${postId}` },
+      ],
+      transformResponse: (response: ApiSuccessResponse<PostCommentDto>) => response.data,
+      transformErrorResponse: transformError,
+    }),
+
+    deletePostComment: builder.mutation<void, { commentId: string; postId: string }>({
+      query: ({ commentId }) => ({
+        url: `${API_ENDPOINTS.posts.base}/comments/${commentId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { postId }) => [
+        { type: "Post", id: postId },
+        { type: "Comment", id: `LIST_${postId}` },
+      ],
+      transformErrorResponse: transformError,
+    }),
   }),
 });
 
@@ -157,4 +288,10 @@ export const {
   useCreatePostMutation,
   useUpdatePostMutation,
   useDeletePostMutation,
+  useReactToPostMutation,
+  useGetPostReactionsQuery,
+  useGetPostCommentsQuery,
+  useCreatePostCommentMutation,
+  useDeletePostCommentMutation,
 } = postApi;
+

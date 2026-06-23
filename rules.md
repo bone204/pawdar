@@ -19,6 +19,9 @@
     *   Track progress using `[ ]` (not started), `[/]` (in progress), and `[x]` (completed) directly inside the file.
 *   **Autonomous Bug Fixing:** When given a bug report, proactively analyze logs, trace errors, find root causes, and resolve them. Do not ask the user for step-by-step guidance.
 *   **Self-Improvement Loop:** After any correction or feedback from the user, immediately update lessons learned in `tasks/lessons.md` to prevent repeating the same mistake.
+*   **Response Code Synchronization & Translation (Mandatory):** Every time a new API response code or error code is created on the backend:
+    *   You **must** register it in both `server/src/common/constants/response-codes.ts` and `web/src/shared/constants/response-codes.ts` to keep them in sync.
+    *   You **must** translate it in both `web/src/presentation/i18n/locales/vi.json` and `web/src/presentation/i18n/locales/en.json` under the `api.codes` path immediately.
 *   **Demand Elegance & Senior Standards:**
     *   Always strive for the most minimal changes to avoid introducing unexpected bugs.
     *   If a fix feels hacky, pause and design a clean, elegant, and optimal solution matching Senior Developer standards.

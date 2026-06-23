@@ -37,6 +37,8 @@ model User {
   encyclopediaFavorites EncyclopediaFavorite[]
   lostReports          LostReport[]
   posts                Post[]
+  postReactions        PostReaction[]
+  postComments         PostComment[]
 
   @@map("users")
 }
@@ -183,7 +185,43 @@ model Post {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions        PostReaction[]
+  comments         PostComment[]
 
   @@map("posts")
+}
+
+model PostReaction {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  type      String   @default("LIKE") // LIKE, LOVE, HAHA, WOW, SAD, ANGRY
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_reactions")
+}
+
+model PostComment {
+  id               String   @id @default(uuid())
+  postId           String   @map("post_id")
+  userId           String   @map("user_id")
+  parentId         String?  @map("parent_id")
+  content          String   @db.Text
+  isApproved       Boolean  @default(true) @map("is_approved")
+  moderationLabel  String?  @map("moderation_label")
+  moderationReason String?  @db.Text @map("moderation_reason")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  post             Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent           PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies          PostComment[] @relation("CommentReplies")
+
+  @@map("post_comments")
 }

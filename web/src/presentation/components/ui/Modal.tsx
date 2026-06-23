@@ -9,6 +9,7 @@ export interface ModalProps {
   title: string;
   children: React.ReactNode;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
+  scrollable?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -17,6 +18,7 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   children,
   maxWidth = "3xl",
+  scrollable = true,
 }) => {
   const maxWidthClass = {
     sm: "max-w-sm",
@@ -47,7 +49,9 @@ export const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ duration: 0.2 }}
-            className={`relative w-full ${maxWidthClass} bg-card border border-border rounded-3xl p-6 shadow-2xl z-10 max-h-[90vh] overflow-y-auto`}
+            className={`relative w-full ${maxWidthClass} bg-card border border-border/30 rounded-3xl p-6 shadow-2xl z-10 ${
+              scrollable ? "max-h-[90vh] overflow-y-auto" : "max-h-[85vh] md:max-h-[90vh] flex flex-col overflow-hidden"
+            }`}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-6">

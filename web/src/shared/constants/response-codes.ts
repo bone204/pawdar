@@ -63,6 +63,19 @@ export enum ResponseCode {
   POST_MODERATION_FAILED = "post_moderation_failed",
   POST_ALREADY_DELETED = "post_already_deleted",
 
+  // ── Reaction/Comment Success Codes ────────────────────────────────────────
+  REACT_POST_SUCCESSFUL = "react_post_successful",
+  GET_POST_REACTIONS_SUCCESSFUL = "get_post_reactions_successful",
+  CREATE_COMMENT_SUCCESSFUL = "create_comment_successful",
+  GET_COMMENTS_SUCCESSFUL = "get_comments_successful",
+  DELETE_COMMENT_SUCCESSFUL = "delete_comment_successful",
+
+  // ── Reaction/Comment Error Codes ──────────────────────────────────────────
+  COMMENT_NOT_FOUND = "comment_not_found",
+  COMMENT_DELETE_FORBIDDEN = "comment_delete_forbidden",
+  INVALID_COMMENT_CONTENT = "invalid_comment_content",
+  COMMENT_MODERATION_FAILED = "comment_moderation_failed",
+
   // ── Generic Error Codes ───────────────────────────────────────────────────
   INTERNAL_SERVER_ERROR = "internal_server_error",
   FORBIDDEN = "forbidden",
