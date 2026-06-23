@@ -24,6 +24,14 @@ export enum ResponseCode {
   UPDATE_GALLERY_SUCCESSFUL = 'update_gallery_successful',
   DELETE_GALLERY_SUCCESSFUL = 'delete_gallery_successful',
 
+  // ── Post Success Codes ────────────────────────────────────────────────────
+  CREATE_POST_SUCCESSFUL = 'create_post_successful',
+  GET_MY_POSTS_SUCCESSFUL = 'get_my_posts_successful',
+  GET_ALL_POSTS_SUCCESSFUL = 'get_all_posts_successful',
+  GET_POST_DETAIL_SUCCESSFUL = 'get_post_detail_successful',
+  UPDATE_POST_SUCCESSFUL = 'update_post_successful',
+  DELETE_POST_SUCCESSFUL = 'delete_post_successful',
+
   // ── Auth Error Codes ──────────────────────────────────────────────────────
   EMAIL_ALREADY_REGISTERED = 'email_already_registered',
   INVALID_VERIFICATION_TOKEN = 'invalid_verification_token',
@@ -43,6 +51,12 @@ export enum ResponseCode {
   FORBIDDEN_PET_ACCESS = 'forbidden_pet_access',
   PET_ALREADY_DELETED = 'pet_already_deleted',
   GALLERY_NOT_FOUND = 'gallery_not_found',
+
+  // ── Post Error Codes ──────────────────────────────────────────────────────
+  POST_NOT_FOUND = 'post_not_found',
+  FORBIDDEN_POST_ACCESS = 'forbidden_post_access',
+  POST_MODERATION_FAILED = 'post_moderation_failed',
+  POST_ALREADY_DELETED = 'post_already_deleted',
 
   // ── Generic Codes ─────────────────────────────────────────────────────────
   INTERNAL_SERVER_ERROR = 'internal_server_error',

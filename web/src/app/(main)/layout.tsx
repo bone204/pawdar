@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routes";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { AppSidebar, NavItem } from "@/presentation/components/sidebar/AppSidebar";
 import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon, TagIcon } from "@/presentation/components/ui/Icons";
 import { useGetPetByIdQuery } from "@/infrastructure/rtk/api/pet.api";
+import { TextField } from "@/presentation/components/ui/TextField";
 
 export default function MainLayout({
   children,
@@ -26,6 +27,29 @@ export default function MainLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams?.get("search") || "";
+  const [searchValue, setSearchValue] = useState(initialSearch);
+
+  useEffect(() => {
+    setSearchValue(searchParams?.get("search") || "");
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (pathname !== APP_ROUTES.dashboard) return;
+    const h = setTimeout(() => {
+      const currentParams = new URLSearchParams(window.location.search);
+      if (searchValue) {
+        currentParams.set("search", searchValue);
+      } else {
+        currentParams.delete("search");
+      }
+      const newQuery = currentParams.toString();
+      router.push(`${APP_ROUTES.dashboard}${newQuery ? `?${newQuery}` : ""}`);
+    }, 400);
+    return () => clearTimeout(h);
+  }, [searchValue, router, pathname]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -133,9 +157,24 @@ export default function MainLayout({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
               </button>
             )}
-            <div className="font-bold text-lg select-none text-foreground hidden md:block">
-              {getHeaderTitle()}
-            </div>
+            {pathname === APP_ROUTES.dashboard ? (
+              <div className="w-56 md:w-80 select-none">
+                <TextField
+                  id="feed-search"
+                  placeholder="Tìm kiếm bài viết..."
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  className="w-full rounded-xl"
+                  leftIcon={
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  }
+                />
+              </div>
+            ) : (
+              <div className="font-bold text-lg select-none text-foreground hidden md:block">
+                {getHeaderTitle()}
+              </div>
+            )}
             {/* App name on mobile top bar */}
             <div className="font-black text-lg text-foreground md:hidden select-none">
               {t("common.appName") || "PAWDAR"}

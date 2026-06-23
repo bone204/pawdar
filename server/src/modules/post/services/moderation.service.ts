@@ -8,6 +8,7 @@ export class ModerationService {
   async moderateContent(
     title: string,
     content: string,
+    lang = 'vi',
   ): Promise<{
     isApproved: boolean;
     label: string;
@@ -21,20 +22,23 @@ export class ModerationService {
     }
 
     try {
-      const prompt = `Bạn là một hệ thống kiểm duyệt bài viết tự động bằng tiếng Việt cho ứng dụng thú cưng Pawdar.
-Nhiệm vụ của bạn là kiểm duyệt tiêu đề và nội dung bài viết sau xem có từ ngữ thô tục, xúc phạm, chửi thề, nội dung không lành mạnh, quấy rối hoặc spam hay không.
+      const languageText = lang === 'en' ? 'English' : 'Vietnamese';
+      const prompt = `You are an AI content moderation assistant for the pet community app Pawdar.
+Analyze the following post title and content to check if it contains severe profanity, swear words, harassment, hate speech, explicit adult content, or malicious spam.
 
-Tiêu đề: "${title}"
-Nội dung: "${content}"
+Title: "${title}"
+Content: "${content}"
 
-Yêu cầu kết quả trả về dưới dạng JSON với cấu trúc sau:
+CRITICAL INSTRUCTIONS:
+- Do NOT be overly strict. Common pet terms, harmless slang, and standard descriptions (such as "đực húi", "chó đực", "mèo hoang", "phối giống") are completely CLEAN and MUST be approved. Only reject genuinely offensive, toxic, or vulgar language.
+- The feedback "reason" MUST be written in ${languageText}.
+
+Return the result as a raw JSON object only (no markdown code blocks):
 {
-  "isApproved": true hoặc false,
+  "isApproved": true or false,
   "label": "clean" | "profanity" | "offensive" | "spam",
-  "reason": "Lý do từ chối cụ thể bằng tiếng Việt (nếu isApproved = false, ghi rõ các từ ngữ thô tục/không phù hợp vi phạm, nếu isApproved = true để null)"
-}
-
-Chỉ trả về chuỗi JSON thô, không định dạng markdown.`;
+  "reason": "Detailed rejection reason in ${languageText} explaining which specific words or parts violated the policy (set to null if isApproved is true)"
+}`;
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`,

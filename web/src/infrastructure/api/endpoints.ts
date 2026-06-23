@@ -11,6 +11,10 @@ export const API_ENDPOINTS = {
   },
   breeds: "/breeds",
   pets: "/pets",
+  posts: {
+    base: "/posts",
+    myPosts: "/posts/my-posts",
+  },
   upload: {
     image: "/upload/image",
   },

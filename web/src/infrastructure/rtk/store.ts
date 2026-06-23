@@ -5,6 +5,7 @@ import { authApi } from "@/infrastructure/rtk/api/auth.api";
 import { breedApi } from "@/infrastructure/rtk/api/breed.api";
 import { petApi } from "@/infrastructure/rtk/api/pet.api";
 import { uploadApi } from "@/infrastructure/rtk/api/upload.api";
+import { postApi } from "@/infrastructure/rtk/api/post.api";
 import authReducer from "@/infrastructure/rtk/auth.slice";
 
 export const store = configureStore({
@@ -13,6 +14,7 @@ export const store = configureStore({
     [breedApi.reducerPath]: breedApi.reducer,
     [petApi.reducerPath]: petApi.reducer,
     [uploadApi.reducerPath]: uploadApi.reducer,
+    [postApi.reducerPath]: postApi.reducer,
     auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -20,7 +22,8 @@ export const store = configureStore({
       authApi.middleware,
       breedApi.middleware,
       petApi.middleware,
-      uploadApi.middleware
+      uploadApi.middleware,
+      postApi.middleware
     ),
 });
 

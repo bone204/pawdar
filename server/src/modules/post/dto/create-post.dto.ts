@@ -25,4 +25,12 @@ export class CreatePostDto {
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @ApiPropertyOptional({
+    description: 'Language of the UI (vi or en) for AI feedback',
+    example: 'vi',
+  })
+  @IsOptional()
+  @IsString()
+  lang?: string;
 }

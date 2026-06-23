@@ -30,7 +30,8 @@ export class PostController {
     @Body() createPostDto: CreatePostDto,
     @CurrentUser() user: CurrentUserPayload,
   ) {
-    return this.postService.create(createPostDto, user.id);
+    const data = await this.postService.create(createPostDto, user.id);
+    return { success: true, data };
   }
 
   @Get()
@@ -43,7 +44,8 @@ export class PostController {
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 8;
-    return this.postService.getApproved(pageNum, limitNum);
+    const data = await this.postService.getApproved(pageNum, limitNum);
+    return { success: true, data };
   }
 
   @Get('my-posts')
@@ -59,13 +61,15 @@ export class PostController {
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 8;
-    return this.postService.getMyPosts(user.id, pageNum, limitNum);
+    const data = await this.postService.getMyPosts(user.id, pageNum, limitNum);
+    return { success: true, data };
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get post detail by id' })
   async getById(@Param('id') id: string) {
-    return this.postService.getById(id);
+    const data = await this.postService.getById(id);
+    return { success: true, data };
   }
 
   @Patch(':id')
@@ -77,7 +81,8 @@ export class PostController {
     @Body() updatePostDto: UpdatePostDto,
     @CurrentUser() user: CurrentUserPayload,
   ) {
-    return this.postService.update(id, updatePostDto, user.id);
+    const data = await this.postService.update(id, updatePostDto, user.id);
+    return { success: true, data };
   }
 
   @Delete(':id')
@@ -88,6 +93,7 @@ export class PostController {
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
   ) {
-    return this.postService.delete(id, user.id);
+    const data = await this.postService.delete(id, user.id);
+    return { success: true, data };
   }
 }

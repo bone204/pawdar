@@ -18,13 +18,15 @@ export class PostService {
   ) {}
 
   async create(createPostDto: CreatePostDto, userId: string): Promise<Post> {
+    const { lang, ...postData } = createPostDto;
     const moderationResult = await this.moderationService.moderateContent(
-      createPostDto.title,
-      createPostDto.content,
+      postData.title,
+      postData.content,
+      lang,
     );
 
     const post = await this.postRepository.create({
-      ...createPostDto,
+      ...postData,
       userId,
       status: moderationResult.isApproved ? 'approved' : 'rejected',
       moderationLabel: moderationResult.label,
@@ -64,22 +66,25 @@ export class PostService {
       });
     }
 
+    const { lang, ...updateData } = updatePostDto;
+
     const titleToModerate =
-      updatePostDto.title !== undefined
-        ? updatePostDto.title
+      updateData.title !== undefined
+        ? updateData.title
         : existingPost.title;
     const contentToModerate =
-      updatePostDto.content !== undefined
-        ? updatePostDto.content
+      updateData.content !== undefined
+        ? updateData.content
         : existingPost.content;
 
     const moderationResult = await this.moderationService.moderateContent(
       titleToModerate,
       contentToModerate,
+      lang,
     );
 
     const updatedPost = await this.postRepository.update(id, {
-      ...updatePostDto,
+      ...updateData,
       status: moderationResult.isApproved ? 'approved' : 'rejected',
       moderationLabel: moderationResult.label,
       moderationReason: moderationResult.isApproved
