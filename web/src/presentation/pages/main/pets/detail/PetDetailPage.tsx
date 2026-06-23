@@ -52,6 +52,7 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
   const [editingGalleryImage, setEditingGalleryImage] = useState<any>(null);
   const [deletingGalleryImage, setDeletingGalleryImage] = useState<any>(null);
   const [activeLightboxIndex, setActiveLightboxIndex] = useState<number | null>(null);
+  const [isAvatarPreviewOpen, setIsAvatarPreviewOpen] = useState(false);
   const [deletePetGallery, { isLoading: isDeletingGallery }] = useDeletePetGalleryMutation();
 
   // References for 3D card tilt animation
@@ -234,80 +235,136 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
       transition={{ duration: 0.3 }}
       className="w-full select-none py-2"
     >
-      <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
+      <div className="grid gap-8 lg:grid-cols-12 lg:items-stretch">
         {/* Left Column: Pet Profile Unified Card */}
-        <div className="lg:col-span-5 flex flex-col items-center gap-6 py-6">
-          <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 md:p-8 shadow-sm flex flex-col items-center relative overflow-hidden">
+        <div className="lg:col-span-7 flex flex-col">
+          <div className="w-full h-full bg-card border border-border rounded-3xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 relative overflow-hidden">
             {/* Edit Button floating at the top-right */}
             <button
               onClick={() => setIsFormOpen(true)}
-              className="absolute top-4 right-4 bg-secondary/50 hover:bg-secondary text-foreground rounded-full w-8 h-8 flex items-center justify-center transition-all cursor-pointer border border-border/40 text-xs hover:scale-105 active:scale-95"
+              className="absolute top-4 right-4 bg-secondary/50 hover:bg-secondary text-foreground rounded-full w-8 h-8 flex items-center justify-center transition-all cursor-pointer border border-border/40 text-xs hover:scale-105 active:scale-95 z-10"
               title="Chỉnh sửa hồ sơ"
             >
               ✏️
             </button>
 
-            {/* Avatar */}
-            <div className="w-36 h-36 rounded-full border-4 border-primary/20 overflow-hidden shadow-md shrink-0 mb-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={displayImage}
-                alt={pet.name}
-                className="w-full h-full object-cover"
-              />
+            {/* Left Section: Avatar & Basic Info */}
+            <div className="flex flex-col items-center shrink-0 md:w-64 md:pt-6">
+              {/* Avatar */}
+              <div
+                onClick={() => setIsAvatarPreviewOpen(true)}
+                className="w-44 h-44 md:w-56 md:h-56 rounded-full border-4 border-primary/20 overflow-hidden shadow-md shrink-0 mb-4 cursor-pointer hover:scale-105 hover:border-primary/45 hover:shadow-lg transition-all duration-300 relative group"
+                title="Bấm để xem ảnh lớn"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={displayImage}
+                  alt={pet.name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity duration-300 text-white select-none">
+                  <span className="text-xl">🔍</span>
+                  <span className="text-[10px] uppercase font-bold tracking-widest mt-1">Xem ảnh</span>
+                </div>
+              </div>
+              
+              {/* Basic Info */}
+              <h2 className="text-2xl font-black text-foreground tracking-tight text-center truncate max-w-full" title={pet.name}>
+                {pet.name}
+              </h2>
+              <span className="text-xs font-bold bg-primary/10 text-primary px-3.5 py-1 rounded-full mt-2 inline-block select-none">
+                {pet.petType === "dog" ? "🐶 Chó" : "🐱 Mèo"}
+              </span>
             </div>
-            
-            {/* Basic Info */}
-            <h2 className="text-3xl font-black text-foreground tracking-tight text-center">{pet.name}</h2>
-            <span className="text-xs font-bold bg-primary/10 text-primary px-3.5 py-1 rounded-full mt-2 inline-block select-none">
-              {pet.petType === "dog" ? "🐶 Chó" : "🐱 Mèo"}
-            </span>
 
             {/* Divider */}
-            <div className="w-full border-t border-border/60 my-5" />
+            <div className="hidden md:block w-px bg-border/60 self-stretch my-2" />
+            <div className="block md:hidden w-full border-t border-border/60 my-2" />
 
-            {/* Stats Grid */}
-            <div className="w-full grid grid-cols-2 gap-y-4 gap-x-6 text-sm text-left">
-              <div>
-                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Giới tính</span>
-                <span className="font-bold text-foreground mt-0.5 block">
-                  {pet.gender === "male" ? "Đực ♂" : pet.gender === "female" ? "Cái ♀" : "Chưa xác định"}
-                </span>
+            {/* Right Section: Premium Stats List */}
+            <div className="flex-1 w-full h-full flex flex-col justify-between gap-4 text-sm text-left">
+              {/* Giới tính */}
+              <div className="flex items-center gap-4 p-4 bg-gender-bg border border-gender-color/15 rounded-2xl transition-all hover:bg-gender-icon-bg shadow-xs">
+                <div className="w-11 h-11 rounded-xl bg-gender-icon-bg text-gender-color flex items-center justify-center text-xl shrink-0 select-none">
+                  {pet.gender === "male" ? "♂️" : "♀️"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Giới tính</span>
+                  <span className="font-black text-foreground mt-0.5 block text-sm">
+                    {pet.gender === "male" ? "Đực" : pet.gender === "female" ? "Cái" : "Chưa xác định"}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Giống loài</span>
-                <span className="font-bold text-foreground mt-0.5 block truncate" title={breedLabel}>
-                  {breedLabel}
-                </span>
+
+              {/* Giống loài */}
+              <div className="flex items-center gap-4 p-4 bg-breed-bg border border-breed-color/15 rounded-2xl transition-all hover:bg-breed-icon-bg shadow-xs">
+                <div className="w-11 h-11 rounded-xl bg-breed-icon-bg text-breed-color flex items-center justify-center text-xl shrink-0 select-none">
+                  🧬
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Giống loài</span>
+                  <span className="font-black text-foreground mt-0.5 block text-sm truncate" title={breedLabel}>
+                    {breedLabel}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Tuổi đời</span>
-                <span className="font-bold text-foreground mt-0.5 block">
-                  {petAgeYrs.toFixed(1)} tuổi ({pet.ageMonths ?? 0} thg)
-                </span>
+
+              {/* Tuổi đời */}
+              <div className="flex items-center gap-4 p-4 bg-age-bg border border-age-color/15 rounded-2xl transition-all hover:bg-age-icon-bg shadow-xs">
+                <div className="w-11 h-11 rounded-xl bg-age-icon-bg text-age-color flex items-center justify-center text-xl shrink-0 select-none">
+                  🎂
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Tuổi đời</span>
+                  <span className="font-black text-foreground mt-0.5 block text-sm">
+                    {petAgeYrs.toFixed(1)} tuổi ({pet.ageMonths ?? 0} tháng)
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Cân nặng</span>
-                <span className="font-bold text-foreground mt-0.5 block">
-                  {pet.weightKg != null ? `${pet.weightKg} kg` : "— kg"}
-                </span>
+
+              {/* Cân nặng */}
+              <div className="flex items-center gap-4 p-4 bg-weight-bg border border-weight-color/15 rounded-2xl transition-all hover:bg-weight-icon-bg shadow-xs">
+                <div className="w-11 h-11 rounded-xl bg-weight-icon-bg text-weight-color flex items-center justify-center text-xl shrink-0 select-none">
+                  ⚖️
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Cân nặng</span>
+                  <span className="font-black text-foreground mt-0.5 block text-sm">
+                    {pet.weightKg != null ? `${pet.weightKg} kg` : "— kg"}
+                  </span>
+                </div>
               </div>
-              <div className="col-span-2">
-                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Ngày tham gia Pawdar</span>
-                <span className="font-bold text-foreground mt-0.5 block">
-                  {new Date(pet.createdAt).toLocaleDateString("vi-VN", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
+
+              {/* Ngày tham gia */}
+              <div className="flex items-center gap-4 p-4 bg-date-bg border border-date-color/15 rounded-2xl transition-all hover:bg-date-icon-bg shadow-xs">
+                <div className="w-11 h-11 rounded-xl bg-date-icon-bg text-date-color flex items-center justify-center text-xl shrink-0 select-none">
+                  📅
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Ngày tham gia Pawdar</span>
+                  <span className="font-black text-foreground mt-0.5 block text-sm">
+                    {new Date(pet.createdAt).toLocaleDateString("vi-VN", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
+                </div>
               </div>
+
+              {/* Mô tả / Ghi chú */}
               {pet.description && (
-                <div className="col-span-2 border-t border-border/60 pt-3.5">
-                  <span className="text-[10px] text-muted font-black uppercase tracking-wider block mb-1">Mô tả / Ghi chú</span>
-                  <p className="text-xs text-muted-foreground font-medium leading-relaxed italic">
-                    "{pet.description}"
-                  </p>
+                <div className="flex gap-4 p-4 bg-primary/[0.04] dark:bg-primary/[0.08] border border-primary/10 dark:border-primary/20 rounded-2xl transition-all shadow-xs">
+                  <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xl shrink-0 select-none">
+                    💬
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Mô tả / Ghi chú</span>
+                    <p className="text-xs text-muted-foreground font-semibold leading-relaxed italic mt-1">
+                      "{pet.description}"
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -315,7 +372,7 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
         </div>
 
         {/* Right Column: Pet ID Card & Recommendations */}
-        <div className="lg:col-span-7 flex flex-col items-center gap-6">
+        <div className="lg:col-span-5 flex flex-col items-center gap-6">
           {/* ID Card Wrapper */}
           <div
             className="relative w-full max-w-[420px] md:max-w-[480px] aspect-1.5/1 cursor-pointer select-none rounded-4xl"
@@ -446,7 +503,6 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
             </div>
           </motion.div>
         </div>
-
       </div>
 
       {/* Pet Gallery Section */}
@@ -617,6 +673,33 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
             <span className="text-sm text-neutral-400 font-bold mt-2 block">
               📅 Ngày chụp: {new Date(pet.gallery[activeLightboxIndex].capturedAt).toLocaleDateString("vi-VN")}
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* Avatar Preview Lightbox Overlay */}
+      {isAvatarPreviewOpen && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col justify-center items-center p-4">
+          <button
+            onClick={() => setIsAvatarPreviewOpen(false)}
+            className="absolute top-6 right-6 text-white text-3xl font-bold cursor-pointer bg-white/10 hover:bg-white/20 rounded-full w-12 h-12 flex items-center justify-center transition-colors z-50 animate-in fade-in"
+          >
+            ✕
+          </button>
+
+          <div className="max-w-4xl max-h-[75vh] flex items-center justify-center relative select-none animate-in zoom-in-95 duration-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={displayImage}
+              alt={pet.name}
+              className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl border border-white/10"
+            />
+          </div>
+
+          <div className="text-center mt-6 max-w-2xl px-4 select-none animate-in fade-in">
+            <p className="text-white text-lg font-semibold">
+              Ảnh đại diện của {pet.name}
+            </p>
           </div>
         </div>
       )}

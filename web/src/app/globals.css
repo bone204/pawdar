@@ -22,6 +22,26 @@
   
   --success: #6B7F62;
   --danger: #BF5436;
+
+  --gender-bg: rgba(2, 132, 199, 0.06);
+  --gender-icon-bg: rgba(2, 132, 199, 0.12);
+  --gender-color: #0284C7;
+  
+  --breed-bg: rgba(217, 119, 6, 0.06);
+  --breed-icon-bg: rgba(217, 119, 6, 0.12);
+  --breed-color: #D97706;
+  
+  --age-bg: rgba(5, 150, 105, 0.06);
+  --age-icon-bg: rgba(5, 150, 105, 0.12);
+  --age-color: #059669;
+  
+  --weight-bg: rgba(225, 29, 72, 0.06);
+  --weight-icon-bg: rgba(225, 29, 72, 0.12);
+  --weight-color: #E11D48;
+  
+  --date-bg: rgba(79, 70, 229, 0.06);
+  --date-icon-bg: rgba(79, 70, 229, 0.12);
+  --date-color: #4F46E5;
 }
 
 .dark {
@@ -43,6 +63,26 @@
   --border: #4C3A30;
   --input: #3A2C24;
   --ring: rgba(234, 168, 94, 0.3);
+
+  --gender-bg: rgba(56, 189, 248, 0.08);
+  --gender-icon-bg: rgba(56, 189, 248, 0.16);
+  --gender-color: #38BDF8;
+  
+  --breed-bg: rgba(251, 191, 36, 0.08);
+  --breed-icon-bg: rgba(251, 191, 36, 0.16);
+  --breed-color: #FBBF24;
+  
+  --age-bg: rgba(52, 211, 153, 0.08);
+  --age-icon-bg: rgba(52, 211, 153, 0.16);
+  --age-color: #34D399;
+  
+  --weight-bg: rgba(251, 113, 133, 0.08);
+  --weight-icon-bg: rgba(251, 113, 133, 0.16);
+  --weight-color: #FB7185;
+  
+  --date-bg: rgba(129, 140, 248, 0.08);
+  --date-icon-bg: rgba(129, 140, 248, 0.16);
+  --date-color: #818CF8;
 }
 
 @theme inline {
@@ -58,6 +98,26 @@
   --color-input: var(--input);
   --color-success: var(--success);
   --color-danger: var(--danger);
+
+  --color-gender-bg: var(--gender-bg);
+  --color-gender-icon-bg: var(--gender-icon-bg);
+  --color-gender-color: var(--gender-color);
+  
+  --color-breed-bg: var(--breed-bg);
+  --color-breed-icon-bg: var(--breed-icon-bg);
+  --color-breed-color: var(--breed-color);
+  
+  --color-age-bg: var(--age-bg);
+  --color-age-icon-bg: var(--age-icon-bg);
+  --color-age-color: var(--age-color);
+  
+  --color-weight-bg: var(--weight-bg);
+  --color-weight-icon-bg: var(--weight-icon-bg);
+  --color-weight-color: var(--weight-color);
+  
+  --color-date-bg: var(--date-bg);
+  --color-date-icon-bg: var(--date-icon-bg);
+  --color-date-color: var(--date-color);
   
   --font-sans: var(--font-merriweather), serif;
   --font-mono: var(--font-geist-mono), monospace;
