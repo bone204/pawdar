@@ -138,4 +138,32 @@ export class UserService {
       },
     });
   }
+
+  async searchUsers(query?: string, currentUserId?: string) {
+    const whereClause: any = {
+      isActive: true,
+    };
+    
+    if (currentUserId) {
+      whereClause.id = { not: currentUserId };
+    }
+
+    if (query) {
+      whereClause.fullName = { contains: query, mode: 'insensitive' };
+    }
+
+    return this.prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        avatarUrl: true,
+        bio: true,
+        address: true,
+      },
+      take: 20,
+      orderBy: { fullName: 'asc' },
+    });
+  }
 }

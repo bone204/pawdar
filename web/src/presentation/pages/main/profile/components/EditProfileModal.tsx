@@ -104,7 +104,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             onChange={(e) => setBio(e.target.value)}
             rows={3}
             className="w-full bg-secondary/30 border border-border rounded-xl p-3.5 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors resize-none"
-            placeholder="Tell others about you..."
+            placeholder={t("profile.bioPlaceholder")}
           />
         </div>
 

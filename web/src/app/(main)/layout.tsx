@@ -13,6 +13,13 @@ import { AppSidebar, NavItem } from "@/presentation/components/sidebar/AppSideba
 import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon, TagIcon } from "@/presentation/components/ui/Icons";
 import { useGetPetByIdQuery } from "@/infrastructure/rtk/api/pet.api";
 import { TextField } from "@/presentation/components/ui/TextField";
+import { useSearchUsersQuery } from "@/infrastructure/rtk/api/user.api";
+import { authApi } from "@/infrastructure/rtk/api/auth.api";
+import { breedApi } from "@/infrastructure/rtk/api/breed.api";
+import { petApi } from "@/infrastructure/rtk/api/pet.api";
+import { uploadApi } from "@/infrastructure/rtk/api/upload.api";
+import { postApi } from "@/infrastructure/rtk/api/post.api";
+import { userApi } from "@/infrastructure/rtk/api/user.api";
 
 export default function MainLayout({
   children,
@@ -28,45 +35,84 @@ export default function MainLayout({
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
-  const searchParams = useSearchParams();
-  const initialSearch = searchParams?.get("search") || "";
-  const [searchValue, setSearchValue] = useState(initialSearch);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const [recentSearches, setRecentSearches] = useState<{ id: string; fullName: string; avatarUrl: string | null; email?: string }[]>([]);
 
   useEffect(() => {
-    setSearchValue(searchParams?.get("search") || "");
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (pathname !== APP_ROUTES.dashboard) return;
-    const h = setTimeout(() => {
-      const currentParams = new URLSearchParams(window.location.search);
-      if (searchValue) {
-        currentParams.set("search", searchValue);
-      } else {
-        currentParams.delete("search");
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("pawdar-recent-searches");
+      if (saved) {
+        try {
+          setRecentSearches(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse recent searches", e);
+        }
       }
-      const newQuery = currentParams.toString();
-      router.push(`${APP_ROUTES.dashboard}${newQuery ? `?${newQuery}` : ""}`);
-    }, 400);
-    return () => clearTimeout(h);
-  }, [searchValue, router, pathname]);
+    }
+  }, []);
+
+  const addToRecentSearches = (targetUser: { id: string; fullName: string; avatarUrl: string | null; email?: string }) => {
+    setRecentSearches((prev) => {
+      const filtered = prev.filter((item) => item.id !== targetUser.id);
+      const updated = [targetUser, ...filtered].slice(0, 5);
+      localStorage.setItem("pawdar-recent-searches", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const removeFromRecentSearches = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentSearches((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      localStorage.setItem("pawdar-recent-searches", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const clearRecentSearches = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentSearches([]);
+    localStorage.removeItem("pawdar-recent-searches");
+  };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const { data: searchUsersResult, isFetching: isSearching } = useSearchUsersQuery(
+    debouncedQuery,
+    { skip: !debouncedQuery.trim() }
+  );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false);
+      }
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
         setIsProfileMenuOpen(false);
       }
     };
-    if (isProfileMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isProfileMenuOpen]);
+  }, []);
 
   const _onLogoutPressed = () => {
     dispatch(clearAuthState());
+    dispatch(authApi.util.resetApiState());
+    dispatch(breedApi.util.resetApiState());
+    dispatch(petApi.util.resetApiState());
+    dispatch(uploadApi.util.resetApiState());
+    dispatch(postApi.util.resetApiState());
+    dispatch(userApi.util.resetApiState());
     router.push(APP_ROUTES.login);
   };
 
@@ -117,23 +163,6 @@ export default function MainLayout({
     skip: !activePetId,
   });
 
-  // Determine top header title dynamically
-  const getHeaderTitle = () => {
-    if (activePetId) {
-      return `${t("main.myPets")} / ${activePet?.name || "..."}`;
-    }
-    if (pathname.startsWith(APP_ROUTES.myPets)) {
-      return t("main.myPets");
-    }
-    if (pathname.startsWith(APP_ROUTES.breeds)) {
-      return t("main.breeds");
-    }
-    if (pathname.startsWith(APP_ROUTES.profile)) {
-      return t("common.profile") || "Hồ sơ cá nhân";
-    }
-    return t("main.dashboard") || "Trang chủ";
-  };
-
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden transition-colors duration-300">
       <AppSidebar
@@ -170,24 +199,134 @@ export default function MainLayout({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
               </button>
             )}
-            {pathname === APP_ROUTES.dashboard ? (
-              <div className="w-56 md:w-80 select-none">
-                <TextField
-                  id="feed-search"
-                  placeholder={t("posts.searchPlaceholder") || "Tìm kiếm bài viết..."}
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  className="w-full rounded-xl"
-                  leftIcon={
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                  }
-                />
-              </div>
-            ) : (
-              <div className="font-bold text-lg select-none text-foreground hidden md:block">
-                {getHeaderTitle()}
-              </div>
-            )}
+            
+            <div className="relative w-56 md:w-80 select-none" ref={searchContainerRef}>
+              <TextField
+                id="user-search"
+                placeholder={t("common.searchUsersPlaceholder") || "Tìm kiếm người dùng..."}
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsSearchFocused(true);
+                }}
+                onFocus={() => setIsSearchFocused(true)}
+                className="w-full rounded-xl"
+                leftIcon={
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                }
+              />
+              
+              {/* Lịch sử tìm kiếm gần đây */}
+              {isSearchFocused && !searchQuery.trim() && recentSearches.length > 0 && (
+                <div className="absolute top-full mt-2 left-0 w-64 md:w-80 bg-card border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top">
+                  <div className="flex items-center justify-between px-2 pb-2 mb-1.5 border-b border-border/50">
+                    <span className="text-[10px] font-black text-muted uppercase tracking-wider">
+                      {t("common.recentSearches") || "Tìm kiếm gần đây"}
+                    </span>
+                    <button
+                      onClick={clearRecentSearches}
+                      className="text-[10px] font-bold text-danger hover:underline cursor-pointer"
+                    >
+                      {t("common.clearAll") || "Xóa tất cả"}
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {recentSearches.map((u) => {
+                      const uInitials = u.fullName
+                        ? u.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+                        : "US";
+                      const uAvatar = u.avatarUrl && u.avatarUrl.startsWith("http") ? u.avatarUrl : null;
+                      return (
+                        <div
+                          key={u.id}
+                          onClick={() => {
+                            router.push(`/dashboard/profile/${u.id}`);
+                            setIsSearchFocused(false);
+                          }}
+                          className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-secondary/50 transition-colors cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 bg-primary/10 text-primary border border-primary/20">
+                              {uAvatar ? (
+                                <img src={uAvatar} alt={u.fullName} className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{uInitials}</span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold truncate text-foreground">{u.fullName}</p>
+                              {u.email && <p className="text-[10px] text-muted truncate mt-0.5">{u.email}</p>}
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => removeFromRecentSearches(u.id, e)}
+                            className="p-1 hover:bg-secondary rounded-lg text-muted hover:text-danger active:scale-95 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                            title="Xóa khỏi lịch sử"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Search Results Dropdown */}
+              {isSearchFocused && searchQuery.trim() && (
+                <div className="absolute top-full mt-2 left-0 w-64 md:w-80 bg-card border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-2xl p-2 z-50 max-h-80 overflow-y-auto animate-in fade-in zoom-in-95 duration-200 origin-top">
+                  {isSearching ? (
+                    <div className="flex items-center justify-center py-6">
+                      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : !searchUsersResult || searchUsersResult.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted">
+                      {t("common.noUsersFound") || "Không tìm thấy người dùng"}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      {searchUsersResult.map((u) => {
+                        const uInitials = u.fullName
+                          ? u.fullName
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()
+                          : "US";
+                        const uAvatar = u.avatarUrl && u.avatarUrl.startsWith("http") ? u.avatarUrl : null;
+                        
+                        return (
+                          <button
+                            key={u.id}
+                            onClick={() => {
+                              router.push(`/dashboard/profile/${u.id}`);
+                              addToRecentSearches({ id: u.id, fullName: u.fullName, avatarUrl: u.avatarUrl, email: u.email });
+                              setSearchQuery("");
+                              setIsSearchFocused(false);
+                            }}
+                            className="flex items-center gap-3 w-full p-2 rounded-xl text-left hover:bg-secondary/50 transition-colors cursor-pointer"
+                          >
+                            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 bg-primary/10 text-primary border border-primary/20">
+                              {uAvatar ? (
+                                <img src={uAvatar} alt={u.fullName} className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{uInitials}</span>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-bold truncate text-foreground">{u.fullName}</p>
+                              {u.email && <p className="text-[10px] text-muted truncate mt-0.5">{u.email}</p>}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* App name on mobile top bar */}
             <div className="font-black text-lg text-foreground md:hidden select-none">
               {t("common.appName") || "PAWDAR"}

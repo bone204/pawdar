@@ -149,6 +149,16 @@ export const userApi = createApi({
       transformResponse: (response: ApiSuccessResponse<FriendRequestDto[]>) => response.data,
       transformErrorResponse: transformError,
     }),
+
+    searchUsers: builder.query<UserProfileDto[], string>({
+      query: (search) => ({
+        url: `${API_ENDPOINTS.user.profile.replace('/profile', '')}/search`,
+        method: "GET",
+        params: { q: search },
+      }),
+      transformResponse: (response: ApiSuccessResponse<UserProfileDto[]>) => response.data,
+      transformErrorResponse: transformError,
+    }),
   }),
 });
 
@@ -163,4 +173,5 @@ export const {
   useGetFriendsQuery,
   useGetReceivedFriendRequestsQuery,
   useGetSentFriendRequestsQuery,
+  useSearchUsersQuery,
 } = userApi;

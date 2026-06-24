@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserService } from '../services/user.service';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
@@ -13,6 +13,17 @@ import { ResponseCode } from '../../../common/constants/response-codes';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search all users by full name' })
+  @ApiResponse({ status: 200, description: 'Users search retrieved successfully' })
+  async searchUsers(
+    @Query('q') query?: string,
+    @CurrentUser() user?: CurrentUserPayload,
+  ) {
+    const data = await this.userService.searchUsers(query, user?.id);
+    return { success: true, code: ResponseCode.GET_PROFILE_SUCCESSFUL, data };
+  }
 
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })

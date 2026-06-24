@@ -10,7 +10,11 @@
     "navNews": "Tin tức",
     "langVi": "Tiếng Việt",
     "langEn": "Tiếng Anh",
-    "profile": "Hồ sơ cá nhân"
+    "profile": "Hồ sơ cá nhân",
+    "searchUsersPlaceholder": "Tìm kiếm người dùng...",
+    "noUsersFound": "Không tìm thấy người dùng",
+    "recentSearches": "Tìm kiếm gần đây",
+    "clearAll": "Xóa tất cả"
   },
   "landing": {
     "title": "Chào mừng đến với Pawdar",
@@ -403,8 +407,10 @@
     "postContentPlaceholder": "Bạn đang nghĩ gì thế? Chia sẻ trải nghiệm về thú cưng của bạn...",
     "titleRequired": "Tiêu đề không được để trống",
     "contentRequired": "Nội dung bài viết không được để trống",
-    "imageLabel": "Hình ảnh đính kèm (tùy chọn)",
+    "imageLabel": "Hình ảnh đính kèm (tối đa 10 ảnh)",
     "addImage": "Thêm ảnh vào bài viết",
+    "addMoreImages": "Thêm hình ảnh",
+    "maxImagesReached": "Đã đạt giới hạn tối đa 10 ảnh",
     "imageFormats": "Hỗ trợ định dạng JPG, PNG, WEBP",
     "changeImage": "Thay đổi ảnh 📸",
     "removeImage": "Gỡ ảnh đính kèm",
@@ -425,7 +431,10 @@
     "moderationReason": "Lý do: {reason}",
     "noCommentsYet": "Chưa có bình luận nào. Hãy là người đầu tiên bình luận!",
     "showReplies": "Xem {count} phản hồi",
-    "hideReplies": "Ẩn phản hồi"
+    "hideReplies": "Ẩn phản hồi",
+    "noPostsYet": "Chưa có bài viết nào",
+    "shareFirstPost": "Hãy chia sẻ bài viết đầu tiên của bạn!",
+    "noPostsUser": "Người dùng này chưa đăng bài viết nào."
   },
   "notFound": {
     "code": "404",
@@ -451,7 +460,14 @@
     "friendsTab": "Bạn Bè",
     "requestsTab": "Lời Mời Kết Bạn",
     "updateSuccess": "Cập nhật hồ sơ thành công!",
-    "errorLoad": "Không thể tải thông tin thành viên này."
+    "errorLoad": "Không thể tải thông tin thành viên này.",
+    "contactInfo": "Thông tin liên hệ",
+    "email": "Email",
+    "changeCover": "Thay đổi ảnh bìa",
+    "changeAvatar": "Thay đổi",
+    "manage": "Quản lý",
+    "updateCoverSuccess": "Cập nhật ảnh bìa thành công!",
+    "bioPlaceholder": "Giới thiệu ngắn gọn về bản thân..."
   },
   "friends": {
     "sendRequest": "Kết bạn ➕",

@@ -20,6 +20,7 @@ import {
 } from "@/infrastructure/rtk/api/user.api";
 import {
   useGetMyPostsQuery,
+  useGetApprovedPostsQuery,
   useDeletePostMutation,
   useCreatePostMutation,
   useUpdatePostMutation,
@@ -143,10 +144,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
   // Post Query for right column
   const [postsPage, setPostsPage] = useState(1);
   const postsLimit = 5;
-  const { data: postsData, isLoading: isPostsLoading, refetch: refetchPosts } = useGetMyPostsQuery({
+  
+  const { data: myPostsData, isLoading: isMyPostsLoading } = useGetMyPostsQuery({
     page: postsPage,
     limit: postsLimit,
-  }, { skip: !isMe }); // For other users we can fetch approved posts or handle post query if backend supports it. Here we use getMyPosts for isMe.
+  }, { skip: !isMe });
+
+  const { data: otherPostsData, isLoading: isOtherPostsLoading } = useGetApprovedPostsQuery({
+    page: postsPage,
+    limit: postsLimit,
+    userId: targetId,
+  }, { skip: isMe });
+
+  const postsData = isMe ? myPostsData : otherPostsData;
+  const isPostsLoading = isMe ? isMyPostsLoading : isOtherPostsLoading;
 
   // Mutations
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
@@ -235,7 +246,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
         coverUrl: uploadRes.url,
       }));
 
-      _showToast("Cập nhật ảnh bìa thành công!");
+      _showToast(t("profile.updateCoverSuccess"));
       refetchProfile();
     } catch (err) {
       console.error("Failed to upload cover image", err);
@@ -386,17 +397,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
               <button
                 onClick={handleCoverClick}
                 disabled={isUploadingCover}
-                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white text-xs font-bold px-3 py-1.5 rounded-xl backdrop-blur-sm transition-all flex items-center gap-1.5"
+                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white text-xs font-bold px-3 py-1.5 rounded-xl backdrop-blur-sm transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 {isUploadingCover ? (
                   <>
                     <span className="animate-spin">⏳</span>
-                    <span>Đang tải...</span>
+                    <span>{t("common.loading")}</span>
                   </>
                 ) : (
                   <>
                     <span>📸</span>
-                    <span>Thay đổi ảnh bìa</span>
+                    <span>{t("profile.changeCover")}</span>
                   </>
                 )}
               </button>
@@ -434,7 +445,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
                       <span className="animate-spin text-xl">⏳</span>
                     ) : (
                       <>
-                        <span>Thay đổi</span>
+                        <span>{t("profile.changeAvatar")}</span>
                         <span>📸</span>
                       </>
                     )}
@@ -551,26 +562,26 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
         <div className="lg:col-span-5 flex flex-col gap-6 w-full">
           {/* Personal Info Card */}
           <div className="bg-card border border-border rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col gap-4">
-            <h3 className="text-base font-black text-foreground">{t("profile.contactInfo") || "Thông tin giới thiệu"}</h3>
+            <h3 className="text-base font-black text-foreground">{t("profile.contactInfo")}</h3>
             <div className="flex flex-col gap-3 font-semibold text-foreground/80">
               <div className="flex items-center gap-3 bg-secondary/20 px-3.5 py-2.5 rounded-xl text-xs">
                 <span className="text-base">✉️</span>
                 <div>
-                  <span className="block text-[9px] text-muted font-bold uppercase tracking-wider leading-none">Email</span>
+                  <span className="block text-[9px] text-muted font-bold uppercase tracking-wider leading-none">{t("profile.email")}</span>
                   <span className="text-xs mt-1 block truncate max-w-[200px]">{profile.email}</span>
                 </div>
               </div>
               <div className="flex items-center gap-3 bg-secondary/20 px-3.5 py-2.5 rounded-xl text-xs">
                 <span className="text-base">📍</span>
                 <div>
-                  <span className="block text-[9px] text-muted font-bold uppercase tracking-wider leading-none">Địa chỉ</span>
+                  <span className="block text-[9px] text-muted font-bold uppercase tracking-wider leading-none">{t("profile.address")}</span>
                   <span className="text-xs mt-1 block">{profile.address || t("profile.noAddress")}</span>
                 </div>
               </div>
               <div className="flex items-center gap-3 bg-secondary/20 px-3.5 py-2.5 rounded-xl text-xs">
                 <span className="text-base">📞</span>
                 <div>
-                  <span className="block text-[9px] text-muted font-bold uppercase tracking-wider leading-none">Số điện thoại</span>
+                  <span className="block text-[9px] text-muted font-bold uppercase tracking-wider leading-none">{t("profile.phone")}</span>
                   <span className="text-xs mt-1 block">{profile.phoneNumber || t("profile.noPhone")}</span>
                 </div>
               </div>
@@ -583,7 +594,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
               <h3 className="text-base font-black text-foreground">🐾 {t("profile.petsTab")} ({profile.pets.length})</h3>
               {isMe && (
                 <button onClick={() => router.push("/my-pets")} className="text-xs font-bold text-primary hover:underline">
-                  Quản lý
+                  {t("profile.manage")}
                 </button>
               )}
             </div>
@@ -617,7 +628,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
 
           {/* Friends Side Card */}
           <div className="bg-card border border-border rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col gap-4">
-            <h3 className="text-base font-black text-foreground">🤝 Bạn bè ({profile.stats.friends})</h3>
+            <h3 className="text-base font-black text-foreground">🤝 {t("profile.statsFriends")} ({profile.stats.friends})</h3>
             {isFriendsLoading ? (
               <div className="grid grid-cols-3 gap-3 animate-pulse">
                 {[...Array(3)].map((_, i) => (
@@ -717,9 +728,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
           ) : myPosts.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-16 bg-card border border-border/70 rounded-2xl text-center">
               <span className="text-5xl mb-4 select-none">🔍</span>
-              <h3 className="text-lg font-bold text-foreground">Chưa có bài viết nào</h3>
+              <h3 className="text-lg font-bold text-foreground">{t("posts.noPostsYet")}</h3>
               <p className="text-sm text-muted mt-1.5">
-                {isMe ? "Hãy chia sẻ bài viết đầu tiên của bạn!" : "Người dùng này chưa đăng bài viết nào."}
+                {isMe ? t("posts.shareFirstPost") : t("posts.noPostsUser")}
               </p>
               {isMe && (
                 <Button
@@ -757,7 +768,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
                     {t("posts.prevPage")}
                   </Button>
                   <span className="text-xs font-bold text-foreground text-center">
-                    Trang {postsPage} / {totalPostsPages}
+                    {t("posts.pageIndicator")
+                      .replace("{page}", String(postsPage))
+                      .replace("{totalPages}", String(totalPostsPages))}
                   </span>
                   <Button
                     variant="secondary"

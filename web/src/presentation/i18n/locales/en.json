@@ -10,7 +10,11 @@
     "navNews": "News",
     "langVi": "Vietnamese",
     "langEn": "English",
-    "profile": "Profile"
+    "profile": "Profile",
+    "searchUsersPlaceholder": "Search users...",
+    "noUsersFound": "No users found",
+    "recentSearches": "Recent searches",
+    "clearAll": "Clear all"
   },
   "landing": {
     "title": "Welcome to Pawdar",
@@ -403,8 +407,10 @@
     "postContentPlaceholder": "What's on your mind? Share your pet experience...",
     "titleRequired": "Title is required",
     "contentRequired": "Content is required",
-    "imageLabel": "Attachment Image (optional)",
+    "imageLabel": "Attached images (max 10 images)",
     "addImage": "Add photo to post",
+    "addMoreImages": "Add images",
+    "maxImagesReached": "Maximum of 10 images reached",
     "imageFormats": "Supports JPG, PNG, WEBP formats",
     "changeImage": "Change Photo 📸",
     "removeImage": "Remove Photo",
@@ -425,7 +431,10 @@
     "moderationReason": "Reason: {reason}",
     "noCommentsYet": "No comments yet. Be the first to comment!",
     "showReplies": "Show {count} replies",
-    "hideReplies": "Hide replies"
+    "hideReplies": "Hide replies",
+    "noPostsYet": "No posts yet",
+    "shareFirstPost": "Share your first post!",
+    "noPostsUser": "This user hasn't posted anything yet."
   },
   "notFound": {
     "code": "404",
@@ -451,7 +460,14 @@
     "friendsTab": "Friends",
     "requestsTab": "Friend Requests",
     "updateSuccess": "Profile updated successfully!",
-    "errorLoad": "Unable to load member profile details."
+    "errorLoad": "Unable to load member profile details.",
+    "contactInfo": "Contact Info",
+    "email": "Email",
+    "changeCover": "Change cover image",
+    "changeAvatar": "Change",
+    "manage": "Manage",
+    "updateCoverSuccess": "Cover image updated successfully!",
+    "bioPlaceholder": "Tell others about you..."
   },
   "friends": {
     "sendRequest": "Add Friend ➕",

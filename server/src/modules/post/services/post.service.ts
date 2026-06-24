@@ -105,8 +105,8 @@ export class PostService {
     return updatedPost;
   }
 
-  async getApproved(page = 1, limit = 8, currentUserId?: string) {
-    return this.postRepository.findApproved(page, limit, currentUserId);
+  async getApproved(page = 1, limit = 8, currentUserId?: string, targetUserId?: string) {
+    return this.postRepository.findApproved(page, limit, currentUserId, targetUserId);
   }
 
   async getMyPosts(userId: string, page = 1, limit = 8, currentUserId?: string) {
