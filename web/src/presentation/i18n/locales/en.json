@@ -487,5 +487,16 @@
     "declineSuccess": "Declined friend request successfully.",
     "cancelSuccess": "Cancelled friend request successfully.",
     "sendSuccess": "Sent friend request successfully."
+  },
+  "notification": {
+    "title": "Notifications",
+    "empty": "No notifications yet.",
+    "markAllRead": "Mark all as read",
+    "friendRequestSent": "{name} sent you a friend request.",
+    "friendRequestAccepted": "{name} accepted your friend request.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "accepted": "Accepted",
+    "declined": "Declined"
   }
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routes";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
@@ -13,19 +13,22 @@ import { AppSidebar, NavItem } from "@/presentation/components/sidebar/AppSideba
 import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon, TagIcon } from "@/presentation/components/ui/Icons";
 import { useGetPetByIdQuery } from "@/infrastructure/rtk/api/pet.api";
 import { TextField } from "@/presentation/components/ui/TextField";
-import { useSearchUsersQuery } from "@/infrastructure/rtk/api/user.api";
+import { useSearchUsersQuery, useAcceptFriendRequestMutation, useDeclineFriendRequestMutation, useGetReceivedFriendRequestsQuery, useGetFriendsQuery } from "@/infrastructure/rtk/api/user.api";
+import {
+  useGetNotificationsQuery,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
+} from "@/infrastructure/rtk/api/notification.api";
+import { SocketProvider } from "@/presentation/providers/SocketProvider";
 import { authApi } from "@/infrastructure/rtk/api/auth.api";
 import { breedApi } from "@/infrastructure/rtk/api/breed.api";
 import { petApi } from "@/infrastructure/rtk/api/pet.api";
 import { uploadApi } from "@/infrastructure/rtk/api/upload.api";
 import { postApi } from "@/infrastructure/rtk/api/post.api";
 import { userApi } from "@/infrastructure/rtk/api/user.api";
+import { notificationApi } from "@/infrastructure/rtk/api/notification.api";
 
-export default function MainLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function LayoutContent({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
@@ -33,13 +36,37 @@ export default function MainLayout({
   const user = useSelector(selectCurrentUser);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  
   const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const notificationDropdownRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
   const [recentSearches, setRecentSearches] = useState<{ id: string; fullName: string; avatarUrl: string | null; email?: string }[]>([]);
+
+  // Fetch Notifications
+  const { data: notifications = [] } = useGetNotificationsQuery(undefined, {
+    skip: !user,
+  });
+
+  const { data: receivedRequests = [] } = useGetReceivedFriendRequestsQuery(undefined, {
+    skip: !user,
+  });
+
+  const { data: friendsList } = useGetFriendsQuery({ limit: 100 }, {
+    skip: !user,
+  });
+
+  const [markAsRead] = useMarkAsReadMutation();
+  const [markAllAsRead] = useMarkAllAsReadMutation();
+  const [acceptFriendRequest] = useAcceptFriendRequestMutation();
+  const [declineFriendRequest] = useDeclineFriendRequestMutation();
+
+  const friends = friendsList?.items || [];
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -98,6 +125,9 @@ export default function MainLayout({
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
         setIsProfileMenuOpen(false);
       }
+      if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target as Node)) {
+        setIsNotificationOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -113,6 +143,7 @@ export default function MainLayout({
     dispatch(uploadApi.util.resetApiState());
     dispatch(postApi.util.resetApiState());
     dispatch(userApi.util.resetApiState());
+    dispatch(notificationApi.util.resetApiState());
     router.push(APP_ROUTES.login);
   };
 
@@ -301,7 +332,12 @@ export default function MainLayout({
                             key={u.id}
                             onClick={() => {
                               router.push(`/dashboard/profile/${u.id}`);
-                              addToRecentSearches({ id: u.id, fullName: u.fullName, avatarUrl: u.avatarUrl, email: u.email });
+                              addToRecentSearches({
+                                id: u.id,
+                                fullName: u.fullName,
+                                avatarUrl: u.avatarUrl || null,
+                                email: u.email || undefined
+                              });
                               setSearchQuery("");
                               setIsSearchFocused(false);
                             }}
@@ -336,6 +372,134 @@ export default function MainLayout({
           <div className="flex items-center gap-3 md:gap-6">
             <LanguageSwitcher />
             <ThemeToggle />
+
+            {/* Realtime Notification Bell Dropdown */}
+            <div className="relative" ref={notificationDropdownRef}>
+              <button
+                onClick={() => {
+                  setIsNotificationOpen(!isNotificationOpen);
+                  if (!isNotificationOpen && unreadCount > 0) {
+                    markAllAsRead();
+                  }
+                }}
+                className="w-11 h-11 bg-secondary text-foreground rounded-full border border-border transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none flex items-center justify-center cursor-pointer relative"
+                aria-label="View notifications"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-danger text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)] border border-card">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {isNotificationOpen && (
+                <div className="absolute top-14 right-0 w-80 md:w-96 bg-card border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right flex flex-col max-h-[480px]">
+                  <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/50 shrink-0">
+                    <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("notification.title") || "Thông báo"}</span>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={() => markAllAsRead()}
+                        className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                      >
+                        {t("notification.markAllRead") || "Đánh dấu tất cả đã đọc"}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="overflow-y-auto flex-1 py-1.5 flex flex-col gap-1">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-muted-foreground font-medium">
+                        {t("notification.empty") || "Không có thông báo nào."}
+                      </div>
+                    ) : (
+                      notifications.map((n) => {
+                        const senderName = n.sender?.fullName || "Ai đó";
+                        const senderAvatar = n.sender?.avatarUrl && n.sender.avatarUrl.startsWith("http") ? n.sender.avatarUrl : null;
+                        const sInitials = senderName.split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase();
+
+                        return (
+                          <div
+                            key={n.id}
+                            onClick={() => {
+                              if (!n.isRead) markAsRead(n.id);
+                              if (n.senderId) {
+                                router.push(`/dashboard/profile/${n.senderId}`);
+                                setIsNotificationOpen(false);
+                              }
+                            }}
+                            className={`flex items-start gap-3 p-3 rounded-xl hover:bg-secondary/40 transition-colors cursor-pointer relative ${!n.isRead ? "bg-primary/5" : ""}`}
+                          >
+                            <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 bg-primary/10 text-primary border border-primary/20 mt-0.5">
+                              {senderAvatar ? (
+                                <img src={senderAvatar} alt={senderName} className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{sInitials}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-foreground truncate">{n.title}</p>
+                              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{n.content}</p>
+
+                              {/* Hành động kết bạn trực tiếp trên thông báo */}
+                              {n.type === "FRIEND_REQUEST" && n.senderId && (
+                                <div className="flex items-center gap-2 mt-2">
+                                  {receivedRequests.some((req) => {
+                                    if (n.referenceId) {
+                                      return req.id === n.referenceId;
+                                    }
+                                    return req.senderId === n.senderId && req.status === "PENDING";
+                                  }) ? (
+                                    <>
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          await acceptFriendRequest(n.senderId!);
+                                          markAsRead(n.id);
+                                        }}
+                                        className="px-3 py-1.5 bg-primary text-primary-foreground font-black text-[10px] rounded-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                                      >
+                                        {t("notification.accept") || "Chấp nhận"}
+                                      </button>
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          await declineFriendRequest(n.senderId!);
+                                          markAsRead(n.id);
+                                        }}
+                                        className="px-3 py-1.5 bg-secondary text-foreground font-black text-[10px] rounded-lg hover:bg-secondary-foreground/10 active:scale-95 transition-all cursor-pointer"
+                                      >
+                                        {t("notification.decline") || "Từ chối"}
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <span className="text-[10px] font-bold italic py-1 text-muted-foreground">
+                                      {friends.some((f) => f.id === n.senderId)
+                                        ? t("notification.accepted") || "Đã đồng ý"
+                                        : t("notification.declined") || "Đã từ chối"}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                              <span className="text-[9px] text-muted block mt-1.5">
+                                {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(n.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            {!n.isRead && (
+                              <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2"></span>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             
             {/* User Profile Dropdown */}
             <div className="relative" ref={profileDropdownRef}>
@@ -398,3 +562,16 @@ export default function MainLayout({
     </div>
   );
 }
+
+export default function MainLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SocketProvider>
+      <LayoutContent>{children}</LayoutContent>
+    </SocketProvider>
+  );
+}
+

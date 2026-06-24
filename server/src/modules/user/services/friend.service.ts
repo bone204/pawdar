@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ResponseCode } from '../../../common/constants/response-codes';
+import { NotificationService } from '../../notification/services/notification.service';
 
 @Injectable()
 export class FriendService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   async sendFriendRequest(senderId: string, receiverId: string) {
     if (senderId === receiverId) {
@@ -48,13 +52,29 @@ export class FriendService {
       });
     }
 
-    return this.prisma.friendship.create({
+    const friendship = await this.prisma.friendship.create({
       data: {
         senderId,
         receiverId,
         status: 'PENDING',
       },
     });
+
+    const sender = await this.prisma.user.findUnique({
+      where: { id: senderId },
+    });
+
+    // Create Notification and trigger realtime via Socket
+    await this.notificationService.createNotification({
+      userId: receiverId,
+      senderId: senderId,
+      type: 'FRIEND_REQUEST',
+      title: 'Lời mời kết bạn mới',
+      content: `${sender?.fullName || 'Ai đó'} đã gửi cho bạn một lời mời kết bạn.`,
+      referenceId: friendship.id,
+    });
+
+    return friendship;
   }
 
   async acceptFriendRequest(receiverId: string, senderId: string) {
@@ -74,7 +94,7 @@ export class FriendService {
       });
     }
 
-    return this.prisma.friendship.update({
+    const updated = await this.prisma.friendship.update({
       where: {
         id: friendship.id,
       },
@@ -82,6 +102,22 @@ export class FriendService {
         status: 'ACCEPTED',
       },
     });
+
+    const receiver = await this.prisma.user.findUnique({
+      where: { id: receiverId },
+    });
+
+    // Create Notification and trigger realtime via Socket
+    await this.notificationService.createNotification({
+      userId: senderId,
+      senderId: receiverId,
+      type: 'FRIEND_ACCEPT',
+      title: 'Đã chấp nhận lời mời kết bạn',
+      content: `${receiver?.fullName || 'Ai đó'} đã đồng ý lời mời kết bạn của bạn.`,
+      referenceId: friendship.id,
+    });
+
+    return updated;
   }
 
   async declineFriendRequest(receiverId: string, senderId: string) {
@@ -103,10 +139,29 @@ export class FriendService {
       });
     }
 
+    // Identify who is declining: if receiverId is user executing the decline, senderId is the other one
+    // We want to notify the other person that their request has been declined or cancelled.
+    const targetNotifyId = friendship.senderId === receiverId ? friendship.receiverId : friendship.senderId;
+    const actorId = friendship.senderId === receiverId ? friendship.senderId : friendship.receiverId;
+
     await this.prisma.friendship.delete({
       where: {
         id: friendship.id,
       },
+    });
+
+    const actor = await this.prisma.user.findUnique({
+      where: { id: actorId },
+    });
+
+    // Send a real-time notification to the other user so their UI updates
+    await this.notificationService.createNotification({
+      userId: targetNotifyId,
+      senderId: actorId,
+      type: 'FRIEND_DECLINE',
+      title: 'Yêu cầu kết bạn đã bị từ chối/hủy',
+      content: `${actor?.fullName || 'Ai đó'} đã từ chối hoặc hủy yêu cầu kết bạn.`,
+      referenceId: friendship.id,
     });
 
     return { deleted: true };

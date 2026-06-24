@@ -48,6 +48,8 @@ model User {
   sentFriendships     Friendship[] @relation("SentFriendships")
   receivedFriendships Friendship[] @relation("ReceivedFriendships")
 
+  notifications       Notification[]
+
   @@map("users")
 }
 
@@ -247,4 +249,21 @@ model Friendship {
 
   @@unique([senderId, receiverId])
   @@map("friendships")
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  senderId    String?  @map("sender_id")
+  type        String   // "FRIEND_REQUEST", "FRIEND_ACCEPT"
+  title       String
+  content     String
+  isRead      Boolean  @default(false) @map("is_read")
+  referenceId String?  @map("reference_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }

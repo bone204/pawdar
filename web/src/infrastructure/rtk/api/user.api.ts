@@ -86,6 +86,15 @@ export const userApi = createApi({
         "UserProfile",
         { type: "UserProfile", id: senderId },
       ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Invalidate Notification cache from notificationApi
+          dispatch(
+            { type: "notificationApi/invalidateTags", payload: ["Notification"] }
+          );
+        } catch (err) {}
+      },
       transformResponse: (response: ApiSuccessResponse<any>) => response.data,
       transformErrorResponse: transformError,
     }),
@@ -101,6 +110,15 @@ export const userApi = createApi({
         "UserProfile",
         { type: "UserProfile", id: senderId },
       ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Invalidate Notification cache from notificationApi
+          dispatch(
+            { type: "notificationApi/invalidateTags", payload: ["Notification"] }
+          );
+        } catch (err) {}
+      },
       transformResponse: (response: ApiSuccessResponse<any>) => response.data,
       transformErrorResponse: transformError,
     }),

@@ -487,5 +487,16 @@
     "declineSuccess": "Từ chối kết bạn thành công.",
     "cancelSuccess": "Hủy yêu cầu kết bạn thành công.",
     "sendSuccess": "Gửi yêu cầu kết bạn thành công."
+  },
+  "notification": {
+    "title": "Thông báo",
+    "empty": "Không có thông báo nào.",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "friendRequestSent": "{name} đã gửi cho bạn một lời mời kết bạn.",
+    "friendRequestAccepted": "{name} đã đồng ý lời mời kết bạn của bạn.",
+    "accept": "Chấp nhận",
+    "decline": "Từ chối",
+    "accepted": "Đã đồng ý",
+    "declined": "Đã từ chối"
   }
 }
