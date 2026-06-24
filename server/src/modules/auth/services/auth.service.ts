@@ -263,13 +263,16 @@ export class AuthService {
     const appUrl = process.env.APP_URL || 'http://localhost:3000';
     const verifyUrl = `${appUrl}/verify-email?token=${token}`;
 
-    const apiKey = process.env.RESEND_API_KEY;
+    const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) {
-      this.logger.error('RESEND_API_KEY is not configured. Cannot send verification email.');
+      this.logger.error('BREVO_API_KEY is not configured. Cannot send verification email.');
+      // Tùy chọn: in link ra log cho mục đích debug dễ dàng nếu không có API Key
+      this.logger.log(`[DEBUG - Verification Link]: ${verifyUrl}`);
       return;
     }
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Pawdar <onboarding@resend.dev>';
+    const senderEmail = process.env.BREVO_SENDER_EMAIL || 'no-reply@pawdar.com';
+    const senderName = process.env.BREVO_SENDER_NAME || 'Pawdar';
 
     try {
       // Resolve templates directory
@@ -289,30 +292,41 @@ export class AuthService {
         verifyUrl,
       });
 
-      const response = await fetch('https://api.resend.com/emails', {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
+          'accept': 'application/json',
+          'api-key': apiKey,
+          'content-type': 'application/json',
         },
         body: JSON.stringify({
-          from: fromEmail,
-          to: [email],
+          sender: {
+            name: senderName,
+            email: senderEmail,
+          },
+          to: [
+            {
+              email: email,
+              name: fullName,
+            },
+          ],
           subject: '🐾 Verify your Pawdar account',
-          html,
+          htmlContent: html,
         }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Resend API returned status ${response.status}: ${errorText}`);
+        throw new Error(`Brevo API returned status ${response.status}: ${errorText}`);
       }
 
-      const result = (await response.json()) as { id: string };
-      this.logger.log(`Verification email sent to ${email} successfully via Resend. ID: ${result.id}`);
+      const result = (await response.json()) as { messageId: string };
+      this.logger.log(`Verification email sent to ${email} successfully via Brevo. Message ID: ${result.messageId}`);
     } catch (error) {
       // Log error but don't block the response — user already created
       this.logger.error(`Failed to send verification email to ${email}`, error);
+      // In dự phòng ra log để vẫn có thể test được nếu gửi thật thất bại
+      this.logger.log(`[FALLBACK - Verification Link]: ${verifyUrl}`);
     }
   }
 
