@@ -161,7 +161,7 @@ export default function MainLayout({
               <div className="w-56 md:w-80 select-none">
                 <TextField
                   id="feed-search"
-                  placeholder="Tìm kiếm bài viết..."
+                  placeholder={t("posts.searchPlaceholder") || "Tìm kiếm bài viết..."}
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   className="w-full rounded-xl"

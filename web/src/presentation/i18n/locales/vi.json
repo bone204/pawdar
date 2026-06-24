@@ -366,6 +366,7 @@
     "share": "Chia sẻ",
     "writePlaceholder": "Bạn đang nghĩ gì thế, {name}?",
     "writePlaceholderDefault": "bạn ơi",
+    "searchPlaceholder": "Tìm kiếm bài viết...",
     "attachImage": "Ảnh đính kèm",
     "loadError": "Không thể tải bài viết lúc này.",
     "checkNetwork": "Vui lòng kiểm tra lại kết nối mạng của bạn.",

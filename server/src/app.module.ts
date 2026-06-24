@@ -5,6 +5,7 @@ import { BreedModule } from './modules/breed/breed.module';
 import { PetModule } from './modules/pet/pet.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { PostModule } from './modules/post/post.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { PostModule } from './modules/post/post.module';
     PetModule,
     UploadModule,
     PostModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],

@@ -366,6 +366,7 @@
     "share": "Share",
     "writePlaceholder": "What's on your mind, {name}?",
     "writePlaceholderDefault": "there",
+    "searchPlaceholder": "Search posts...",
     "attachImage": "Attach Photo",
     "loadError": "Unable to load posts at this time.",
     "checkNetwork": "Please check your network connection and try again.",

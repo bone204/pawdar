@@ -32,6 +32,24 @@ export enum ResponseCode {
   UPDATE_POST_SUCCESSFUL = 'update_post_successful',
   DELETE_POST_SUCCESSFUL = 'delete_post_successful',
 
+  // ── User/Profile Success Codes ──────────────────────────────────────────────
+  GET_PROFILE_SUCCESSFUL = 'get_profile_successful',
+  UPDATE_PROFILE_SUCCESSFUL = 'update_profile_successful',
+  
+  // ── Friend Success Codes ────────────────────────────────────────────────────
+  FRIEND_REQUEST_SENT = 'friend_request_sent',
+  FRIEND_REQUEST_ACCEPTED = 'friend_request_accepted',
+  FRIEND_REQUEST_DECLINED = 'friend_request_declined',
+  UNFRIENDED_SUCCESSFUL = 'unfriended_successful',
+  GET_FRIENDS_SUCCESSFUL = 'get_friends_successful',
+  GET_FRIEND_REQUESTS_SUCCESSFUL = 'get_friend_requests_successful',
+  
+  // ── Friend Error Codes ──────────────────────────────────────────────────────
+  FRIEND_REQUEST_ALREADY_EXISTS = 'friend_request_already_exists',
+  FRIEND_REQUEST_NOT_FOUND = 'friend_request_not_found',
+  CANNOT_FRIEND_SELF = 'cannot_friend_self',
+  ALREADY_FRIENDS = 'already_friends',
+
   // ── Auth Error Codes ──────────────────────────────────────────────────────
   EMAIL_ALREADY_REGISTERED = 'email_already_registered',
   INVALID_VERIFICATION_TOKEN = 'invalid_verification_token',
