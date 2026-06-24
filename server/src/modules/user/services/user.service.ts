@@ -19,6 +19,7 @@ export class UserService {
         role: true,
         bio: true,
         address: true,
+        coverUrl: true,
         createdAt: true,
       },
     });
@@ -121,6 +122,7 @@ export class UserService {
         avatarUrl: dto.avatarUrl,
         bio: dto.bio,
         address: dto.address,
+        coverUrl: dto.coverUrl,
       },
       select: {
         id: true,
@@ -131,6 +133,7 @@ export class UserService {
         role: true,
         bio: true,
         address: true,
+        coverUrl: true,
         updatedAt: true,
       },
     });

@@ -3,6 +3,7 @@ import { UserDto } from "./auth.dto";
 export interface UserProfileDto extends UserDto {
   bio?: string | null;
   address?: string | null;
+  coverUrl?: string | null;
   createdAt: string;
   pets: {
     id: string;
@@ -29,6 +30,7 @@ export interface UpdateProfileRequestDto {
   fullName?: string;
   phoneNumber?: string;
   avatarUrl?: string;
+  coverUrl?: string;
   bio?: string;
   address?: string;
 }

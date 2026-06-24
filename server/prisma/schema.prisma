@@ -34,6 +34,7 @@ model User {
 
   bio                 String?   @db.Text
   address             String?
+  coverUrl            String?   @map("cover_url")
 
   // === CÁC MỐI QUAN HỆ RECIPROCAL (Giữ nguyên) ===
   pets                 UserPet[]
