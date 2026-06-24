@@ -28,6 +28,12 @@ export const authSlice = createSlice({
       localStorage.setItem("pawdar-logged-in", "true");
       localStorage.setItem("pawdar-user", JSON.stringify(action.payload.user));
     },
+    updateUser: (state, action: PayloadAction<Partial<UserDto>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+        localStorage.setItem("pawdar-user", JSON.stringify(state.user));
+      }
+    },
     clearAuthState: (state) => {
       state.accessToken = null;
       state.user = null;
@@ -38,7 +44,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setAuthenticatedSession, clearAuthState } = authSlice.actions;
+export const { setAuthenticatedSession, updateUser, clearAuthState } = authSlice.actions;
 
 export const selectAuth = (state: { auth: AuthState }) => state.auth;
 export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user;

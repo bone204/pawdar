@@ -79,6 +79,10 @@ export default function MainLayout({
         .toUpperCase()
     : "PT";
 
+  const displayAvatar = user?.avatarUrl && user.avatarUrl.startsWith("http")
+    ? user.avatarUrl
+    : null;
+
   const navItems: NavItem[] = [
     {
       id: "dashboard",
@@ -97,6 +101,12 @@ export default function MainLayout({
       label: t("main.breeds") || "Giống Loài Thú Cưng",
       route: APP_ROUTES.breeds,
       icon: <TagIcon className="w-5 h-5" />,
+    },
+    {
+      id: "profile",
+      label: t("common.profile") || "Hồ sơ cá nhân",
+      route: APP_ROUTES.profile,
+      icon: <UserIcon className="w-5 h-5" />,
     },
   ];
 
@@ -117,6 +127,9 @@ export default function MainLayout({
     }
     if (pathname.startsWith(APP_ROUTES.breeds)) {
       return t("main.breeds");
+    }
+    if (pathname.startsWith(APP_ROUTES.profile)) {
+      return t("common.profile") || "Hồ sơ cá nhân";
     }
     return t("main.dashboard") || "Trang chủ";
   };
@@ -189,9 +202,19 @@ export default function MainLayout({
             <div className="relative" ref={profileDropdownRef}>
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-[0_4px_12px_rgba(201,109,46,0.2)] dark:shadow-[0_4px_12px_rgba(234,168,94,0.25)] select-none shrink-0 cursor-pointer active:scale-95 transition-transform hover:brightness-110"
+                className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-sm shadow-[0_4px_12px_rgba(201,109,46,0.2)] dark:shadow-[0_4px_12px_rgba(234,168,94,0.25)] select-none shrink-0 cursor-pointer active:scale-95 transition-transform hover:brightness-110"
               >
-                {userInitials}
+                {displayAvatar ? (
+                  <img
+                    src={displayAvatar}
+                    alt={user?.fullName || "User"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="w-full h-full bg-primary text-primary-foreground flex items-center justify-center">
+                    {userInitials}
+                  </span>
+                )}
               </button>
               
               {isProfileMenuOpen && (
