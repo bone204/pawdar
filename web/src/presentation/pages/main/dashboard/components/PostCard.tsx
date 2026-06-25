@@ -27,14 +27,14 @@ const REACTION_OPTIONS = [
   { type: "ANGRY", emoji: "😡", colorClass: "text-red-500" },
 ];
 
-interface ImageLightboxProps {
+export interface ImageLightboxProps {
   isOpen: boolean;
   images: string[];
   initialIndex: number;
   onClose: () => void;
 }
 
-const ImageLightbox: React.FC<ImageLightboxProps> = ({
+export const ImageLightbox: React.FC<ImageLightboxProps> = ({
   isOpen,
   images,
   initialIndex,
