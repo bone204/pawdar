@@ -7,4 +7,5 @@ export const APP_ROUTES = {
   profile: "/dashboard/profile",
   breeds: "/breeds",
   myPets: "/my-pets",
+  games: "/dashboard/games",
 } as const;

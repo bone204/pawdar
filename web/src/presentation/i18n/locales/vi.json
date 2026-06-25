@@ -205,6 +205,7 @@
     "dashboard": "Trang Chủ",
     "breeds": "Giống Loài Thú Cưng",
     "myPets": "Thú Cưng Của Tôi",
+    "games": "Trò Chơi",
     "welcome": "Chào mừng bạn quay trở lại",
     "statsTitle": "Tổng Quan Chỉ Số Thú Cưng",
     "activePets": "Thú Cưng Đang Nuôi",
@@ -498,5 +499,31 @@
     "decline": "Từ chối",
     "accepted": "Đã đồng ý",
     "declined": "Đã từ chối"
+  },
+  "games": {
+    "title": "Khu Vui Chơi Pawdar 🎮",
+    "subtitle": "Thư giãn và rèn luyện trí não cùng các trò chơi thú vị cùng thú cưng của bạn.",
+    "sudoku": {
+      "title": "Trò chơi Sudoku",
+      "description": "Thách thức tư duy logic với bảng số Sudoku cổ điển. Điền các số từ 1 đến 9 không trùng lặp trên mỗi hàng, cột và vùng 3x3.",
+      "playNow": "Chơi ngay",
+      "newGame": "Ván mới",
+      "genre": "Trí tuệ",
+      "features": "Bảng xếp hạng trực tuyến",
+      "pause": "Tạm dừng",
+      "resume": "Tiếp tục",
+      "difficulty": "Độ khó",
+      "easy": "Dễ",
+      "medium": "Vừa",
+      "hard": "Khó",
+      "reset": "Chơi lại từ đầu",
+      "undo": "Hoàn tác",
+      "erase": "Xóa số",
+      "victory": "Chúc mừng! Bạn đã chiến thắng!",
+      "defeat": "Trò chơi kết thúc! Bạn đã mắc quá 3 lỗi.",
+      "timer": "Thời gian",
+      "mistakes": "Lỗi",
+      "howToPlay": "Cách chơi: Chọn một ô trống trên lưới 9x9, sau đó nhấn chọn số từ 1 đến 9 ở thanh công cụ phía dưới để điền số."
+    }
   }
 }

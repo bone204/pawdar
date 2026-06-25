@@ -205,6 +205,7 @@
     "dashboard": "Home",
     "breeds": "Pet Breeds",
     "myPets": "My Pets",
+    "games": "Games",
     "welcome": "Welcome back",
     "statsTitle": "Pet Statistics Overview",
     "activePets": "Active Pets",
@@ -498,5 +499,31 @@
     "decline": "Decline",
     "accepted": "Accepted",
     "declined": "Declined"
+  },
+  "games": {
+    "title": "Pawdar Arcade 🎮",
+    "subtitle": "Relax and train your brain with exciting games alongside your pets.",
+    "sudoku": {
+      "title": "Sudoku Game",
+      "description": "Challenge your logic with the classic Sudoku puzzle. Fill numbers from 1 to 9 without duplicates in each row, column, and 3x3 box.",
+      "playNow": "Play Now",
+      "newGame": "New Game",
+      "genre": "Puzzle",
+      "features": "Online Leaderboards",
+      "pause": "Pause",
+      "resume": "Resume",
+      "difficulty": "Difficulty",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "reset": "Reset",
+      "undo": "Undo",
+      "erase": "Erase",
+      "victory": "Congratulations! You won!",
+      "defeat": "Game Over! You made more than 3 mistakes.",
+      "timer": "Time",
+      "mistakes": "Mistakes",
+      "howToPlay": "How to play: Select an empty cell on the 9x9 grid, then select a number from 1 to 9 on the keyboard below to fill it in."
+    }
   }
 }

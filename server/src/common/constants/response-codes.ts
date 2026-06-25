@@ -89,6 +89,13 @@ export enum ResponseCode {
   INVALID_COMMENT_CONTENT = 'invalid_comment_content',
   COMMENT_MODERATION_FAILED = 'comment_moderation_failed',
 
+  // ── Game Success/Error Codes ──────────────────────────────────────────────
+  GET_SUDOKU_STAGES_SUCCESSFUL = 'get_sudoku_stages_successful',
+  GET_SUDOKU_STAGE_DETAIL_SUCCESSFUL = 'get_sudoku_stage_detail_successful',
+  SUBMIT_SUDOKU_RECORD_SUCCESSFUL = 'submit_sudoku_record_successful',
+  GET_SUDOKU_LEADERBOARD_SUCCESSFUL = 'get_sudoku_leaderboard_successful',
+  SUDOKU_STAGE_NOT_FOUND = 'sudoku_stage_not_found',
+
   // ── Generic Codes ─────────────────────────────────────────────────────────
   INTERNAL_SERVER_ERROR = 'internal_server_error',
   FORBIDDEN = 'forbidden',

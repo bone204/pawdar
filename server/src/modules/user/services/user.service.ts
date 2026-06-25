@@ -21,6 +21,7 @@ export class UserService {
         address: true,
         coverUrl: true,
         createdAt: true,
+        isEmailVerified: true,
       },
     });
 
@@ -28,6 +29,14 @@ export class UserService {
       throw new NotFoundException({
         code: ResponseCode.USER_NOT_FOUND,
         message: 'User not found',
+      });
+    }
+
+    // Only allow viewing profiles of email verified users, except if viewing one's own profile
+    if (targetUserId !== currentUserId && !user.isEmailVerified) {
+      throw new NotFoundException({
+        code: ResponseCode.USER_NOT_FOUND,
+        message: 'User profile is not accessible (email not verified)',
       });
     }
 
@@ -142,6 +151,7 @@ export class UserService {
   async searchUsers(query?: string, currentUserId?: string) {
     const whereClause: any = {
       isActive: true,
+      isEmailVerified: true, // Only show users with verified emails in search results
     };
     
     if (currentUserId) {

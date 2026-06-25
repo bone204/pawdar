@@ -8,6 +8,7 @@ import { PostModule } from './modules/post/post.module';
 import { UserModule } from './modules/user/user.module';
 import { SocketModule } from './modules/socket/socket.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { GameModule } from './modules/game/game.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     UserModule,
     SocketModule,
     NotificationModule,
+    GameModule,
   ],
   controllers: [],
   providers: [],

@@ -72,13 +72,131 @@ async function seedBreeds() {
   return count;
 }
 
+async function seedSudokuStages() {
+  console.log('🌱 Seeding Sudoku stages...');
+
+  const solA = [
+    [5, 3, 4, 6, 7, 8, 9, 1, 2],
+    [6, 7, 2, 1, 9, 5, 3, 4, 8],
+    [1, 9, 8, 3, 4, 2, 5, 6, 7],
+    [8, 5, 9, 7, 6, 1, 4, 2, 3],
+    [4, 2, 6, 8, 5, 3, 7, 9, 1],
+    [7, 1, 3, 9, 2, 4, 8, 5, 6],
+    [9, 6, 1, 5, 3, 7, 2, 8, 4],
+    [2, 8, 7, 4, 1, 9, 6, 3, 5],
+    [3, 4, 5, 2, 8, 6, 1, 7, 9]
+  ];
+
+  const solB = [
+    [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [4, 5, 6, 7, 8, 9, 1, 2, 3],
+    [7, 8, 9, 1, 2, 3, 4, 5, 6],
+    [2, 3, 4, 5, 6, 7, 8, 9, 1],
+    [5, 6, 7, 8, 9, 1, 2, 3, 4],
+    [8, 9, 1, 2, 3, 4, 5, 6, 7],
+    [3, 4, 5, 6, 7, 8, 9, 1, 2],
+    [6, 7, 8, 9, 1, 2, 3, 4, 5],
+    [9, 1, 2, 3, 4, 5, 6, 7, 8]
+  ];
+
+  const solC = [
+    [9, 8, 7, 6, 5, 4, 3, 2, 1],
+    [3, 2, 1, 9, 8, 7, 6, 5, 4],
+    [6, 5, 4, 3, 2, 1, 9, 8, 7],
+    [8, 7, 6, 5, 4, 3, 2, 1, 9],
+    [2, 1, 9, 8, 7, 6, 5, 4, 3],
+    [5, 4, 3, 2, 1, 9, 8, 7, 6],
+    [7, 6, 5, 4, 3, 2, 1, 9, 8],
+    [1, 9, 8, 7, 6, 5, 4, 3, 2],
+    [4, 3, 2, 1, 9, 8, 7, 6, 5]
+  ];
+
+  function getDeterministicMaskedBoard(solution: number[][], cellsToRemove: number, seed: number): number[][] {
+    const board = solution.map(row => [...row]);
+    let removed = 0;
+    let s = seed;
+    const nextRand = () => {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+    
+    while (removed < cellsToRemove) {
+      const r = Math.floor(nextRand() * 9);
+      const c = Math.floor(nextRand() * 9);
+      if (board[r][c] !== 0) {
+        board[r][c] = 0;
+        removed++;
+      }
+    }
+    return board;
+  }
+
+  function getPermutedSolution(baseSol: number[][], stageNumber: number): number[][] {
+    const offset = stageNumber % 9;
+    return baseSol.map(row =>
+      row.map(val => (val - 1 + offset) % 9 + 1)
+    );
+  }
+
+  // Clear existing Sudoku records and stages first to avoid mixed data
+  console.log('🗑 Cleaning old Sudoku records and stages...');
+  await prisma.sudokuRecord.deleteMany({});
+  await prisma.sudokuStage.deleteMany({});
+
+  const baseSolutions = [solA, solB, solC];
+  const stagesToSeed: { difficulty: string; stageNumber: number; solution: number[][]; cellsToRemove: number; seed: number }[] = [];
+
+  for (let i = 1; i <= 18; i++) {
+    let difficulty = 'easy';
+    let cellsToRemove = 30 + (i - 1); // Easy: 30 -> 35
+    if (i >= 7 && i <= 12) {
+      difficulty = 'medium';
+      cellsToRemove = 40 + (i - 7); // Medium: 40 -> 45
+    } else if (i >= 13) {
+      difficulty = 'hard';
+      cellsToRemove = 50 + (i - 13); // Hard: 50 -> 55
+    }
+
+    const baseSol = baseSolutions[(i - 1) % 3];
+    const solution = getPermutedSolution(baseSol, i);
+
+    stagesToSeed.push({
+      difficulty,
+      stageNumber: i,
+      solution,
+      cellsToRemove,
+      seed: 100 + i
+    });
+  }
+
+  let count = 0;
+  for (const s of stagesToSeed) {
+    const board = getDeterministicMaskedBoard(s.solution, s.cellsToRemove, s.seed);
+    await prisma.sudokuStage.create({
+      data: {
+        difficulty: s.difficulty,
+        stageNumber: s.stageNumber,
+        board: board,
+        solution: s.solution
+      }
+    });
+    count++;
+  }
+
+  return count;
+}
+
 async function main() {
   console.log('🚀 Running Pawdar database seed...\n');
 
   const breedCount = await seedBreeds();
-
   if (breedCount > 0) {
     console.log(`✅ Seeded ${breedCount} breeds successfully`);
+  }
+
+  const sudokuCount = await seedSudokuStages();
+  if (sudokuCount > 0) {
+    console.log(`✅ Seeded ${sudokuCount} Sudoku stages successfully`);
   }
 
   console.log('\n🎉 Database seed complete!');
