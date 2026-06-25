@@ -49,6 +49,7 @@ model User {
   receivedFriendships Friendship[] @relation("ReceivedFriendships")
 
   notifications       Notification[]
+  sudokuRecords       SudokuRecord[]
 
   @@map("users")
 }
@@ -266,4 +267,35 @@ model Notification {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
+}
+
+// === PHÂN HỆ GAMES & SUDOKU ===
+model SudokuStage {
+  id          String   @id @default(uuid())
+  difficulty  String   // "easy" | "medium" | "hard"
+  stageNumber Int      @map("stage_number")
+  board       Json     // Mảng 2 chiều 9x9 (Int[][])
+  solution    Json     // Mảng 2 chiều 9x9 (Int[][])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  records     SudokuRecord[]
+
+  @@unique([difficulty, stageNumber])
+  @@map("sudoku_stages")
+}
+
+model SudokuRecord {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  stageId   String   @map("stage_id")
+  timeTaken Int      @map("time_taken") // giây
+  mistakes  Int
+  status    String   // "won" | "lost"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stage     SudokuStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@map("sudoku_records")
 }

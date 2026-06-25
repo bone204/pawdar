@@ -508,6 +508,8 @@
       "description": "Challenge your logic with the classic Sudoku puzzle. Fill numbers from 1 to 9 without duplicates in each row, column, and 3x3 box.",
       "playNow": "Play Now",
       "newGame": "New Game",
+      "genre": "Puzzle",
+      "features": "Online Leaderboards",
       "pause": "Pause",
       "resume": "Resume",
       "difficulty": "Difficulty",

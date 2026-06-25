@@ -508,6 +508,8 @@
       "description": "Thách thức tư duy logic với bảng số Sudoku cổ điển. Điền các số từ 1 đến 9 không trùng lặp trên mỗi hàng, cột và vùng 3x3.",
       "playNow": "Chơi ngay",
       "newGame": "Ván mới",
+      "genre": "Trí tuệ",
+      "features": "Bảng xếp hạng trực tuyến",
       "pause": "Tạm dừng",
       "resume": "Tiếp tục",
       "difficulty": "Độ khó",

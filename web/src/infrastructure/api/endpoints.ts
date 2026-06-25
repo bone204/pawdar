@@ -22,4 +22,9 @@ export const API_ENDPOINTS = {
     profile: "/user/profile",
     friends: "/user/friends",
   },
+  games: {
+    sudokuStages: "/games/sudoku/stages",
+    sudokuRecords: "/games/sudoku/records",
+    sudokuLeaderboard: "/games/sudoku/leaderboard",
+  },
 } as const;

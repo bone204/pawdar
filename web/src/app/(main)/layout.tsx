@@ -27,6 +27,7 @@ import { uploadApi } from "@/infrastructure/rtk/api/upload.api";
 import { postApi } from "@/infrastructure/rtk/api/post.api";
 import { userApi } from "@/infrastructure/rtk/api/user.api";
 import { notificationApi } from "@/infrastructure/rtk/api/notification.api";
+import { gameApi } from "@/infrastructure/rtk/api/game.api";
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
@@ -144,6 +145,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     dispatch(postApi.util.resetApiState());
     dispatch(userApi.util.resetApiState());
     dispatch(notificationApi.util.resetApiState());
+    dispatch(gameApi.util.resetApiState());
     router.push(APP_ROUTES.login);
   };
 
