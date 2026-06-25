@@ -40,14 +40,16 @@ export class PostController {
   @ApiOperation({ summary: 'Get list of approved posts' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'userId', required: false, type: String })
   async getApproved(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('userId') userId?: string,
     @CurrentUser() user?: CurrentUserPayload,
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 8;
-    const data = await this.postService.getApproved(pageNum, limitNum, user?.id);
+    const data = await this.postService.getApproved(pageNum, limitNum, user?.id, userId);
     return { success: true, data };
   }
 

@@ -18,4 +18,8 @@ export const API_ENDPOINTS = {
   upload: {
     image: "/upload/image",
   },
+  user: {
+    profile: "/user/profile",
+    friends: "/user/friends",
+  },
 } as const;

@@ -29,7 +29,7 @@ export const LoginPage: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push(APP_ROUTES.dashboard);
+      router.replace(APP_ROUTES.dashboard);
     }
   }, [isAuthenticated, router]);
 
@@ -73,7 +73,7 @@ export const LoginPage: React.FC = () => {
         }),
       );
 
-      router.push(APP_ROUTES.dashboard);
+      router.replace(APP_ROUTES.dashboard);
     } catch (err: any) {
       console.log("Login error object:", err);
       if (err?.code === "email_not_verified") {

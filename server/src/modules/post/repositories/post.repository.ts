@@ -98,11 +98,16 @@ export class PostRepository {
     page: number,
     limit: number,
     currentUserId?: string,
+    targetUserId?: string,
   ): Promise<{ items: any[]; total: number; totalPages: number }> {
     const skip = (page - 1) * limit;
+    const whereClause: any = { status: 'approved' };
+    if (targetUserId) {
+      whereClause.userId = targetUserId;
+    }
     const [items, total] = await Promise.all([
       this.prisma.post.findMany({
-        where: { status: 'approved' },
+        where: whereClause,
         include: {
           user: {
             select: {
@@ -128,7 +133,7 @@ export class PostRepository {
         take: limit,
       }),
       this.prisma.post.count({
-        where: { status: 'approved' },
+        where: whereClause,
       }),
     ]);
 

@@ -21,7 +21,7 @@ export const LandingPage: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push(APP_ROUTES.dashboard);
+      router.replace(APP_ROUTES.dashboard);
     }
   }, [isAuthenticated, router]);
 

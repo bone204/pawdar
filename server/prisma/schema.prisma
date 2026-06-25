@@ -32,6 +32,10 @@ model User {
   // Trạng thái tài khoản (Hỗ trợ khóa nếu spam hoặc vi phạm)
   isActive            Boolean   @default(true) @map("is_active")
 
+  bio                 String?   @db.Text
+  address             String?
+  coverUrl            String?   @map("cover_url")
+
   // === CÁC MỐI QUAN HỆ RECIPROCAL (Giữ nguyên) ===
   pets                 UserPet[]
   encyclopediaFavorites EncyclopediaFavorite[]
@@ -39,6 +43,12 @@ model User {
   posts                Post[]
   postReactions        PostReaction[]
   postComments         PostComment[]
+  
+  // Quan hệ bạn bè
+  sentFriendships     Friendship[] @relation("SentFriendships")
+  receivedFriendships Friendship[] @relation("ReceivedFriendships")
+
+  notifications       Notification[]
 
   @@map("users")
 }
@@ -224,4 +234,36 @@ model PostComment {
   replies          PostComment[] @relation("CommentReplies")
 
   @@map("post_comments")
+}
+
+model Friendship {
+  id         String   @id @default(uuid())
+  senderId   String   @map("sender_id")
+  receiverId String   @map("receiver_id")
+  status     String   @default("PENDING") // PENDING, ACCEPTED
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  sender     User     @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User     @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@map("friendships")
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  senderId    String?  @map("sender_id")
+  type        String   // "FRIEND_REQUEST", "FRIEND_ACCEPT"
+  title       String
+  content     String
+  isRead      Boolean  @default(false) @map("is_read")
+  referenceId String?  @map("reference_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }

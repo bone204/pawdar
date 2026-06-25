@@ -105,6 +105,7 @@ export interface GetPostsQueryDto {
   page?: number;
   limit?: number;
   search?: string;
+  userId?: string;
 }
 
 export interface CreatePostRequestDto {

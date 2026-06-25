@@ -54,6 +54,7 @@ export interface UserDto {
   fullName: string;
   phoneNumber?: string | null;
   avatarUrl?: string | null;
+  coverUrl?: string | null;
   role: string;
 }
 
