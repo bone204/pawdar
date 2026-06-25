@@ -12,6 +12,7 @@ import {
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { REACTION_MAP } from "./ReactionsModal";
 import { motion, AnimatePresence } from "framer-motion";
+import { ImageLightbox } from "./PostCard";
 
 interface CommentsModalProps {
   isOpen: boolean;
@@ -42,6 +43,14 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
   const [showReactionsPopover, setShowReactionsPopover] = useState(false);
+
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
 
   // Reaction Optimistic states inside modal
   const [myReaction, setMyReaction] = useState<string | null>(post.myReaction || null);
@@ -199,6 +208,20 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
   const activeReactionMeta = myReaction ? REACTION_MAP[myReaction] : null;
 
+  // Parse imageUrl into an array of URLs
+  let imageUrls: string[] = [];
+  if (post.imageUrl) {
+    if (post.imageUrl.startsWith("[")) {
+      try {
+        imageUrls = JSON.parse(post.imageUrl);
+      } catch {
+        imageUrls = [post.imageUrl];
+      }
+    } else {
+      imageUrls = post.imageUrl.split(",").filter(Boolean);
+    }
+  }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -243,14 +266,104 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
               </p>
             </div>
 
-            {/* Post Image Attachment */}
-            {post.imageUrl && (
-              <div className="w-full bg-secondary/10 overflow-hidden relative aspect-video max-h-[380px] rounded-xl border border-border/40">
-                <img
-                  src={post.imageUrl}
-                  alt={post.title}
-                  className="w-full h-full object-cover"
-                />
+            {/* Post Image Attachment Grid */}
+            {imageUrls.length > 0 && (
+              <div className="w-full overflow-hidden relative rounded-xl border border-border/40 select-none">
+                {imageUrls.length === 1 && (
+                  <div 
+                    onClick={() => openLightbox(0)}
+                    className="w-full aspect-video max-h-[320px] cursor-zoom-in overflow-hidden"
+                  >
+                    <img
+                      src={imageUrls[0]}
+                      alt={post.title}
+                      className="w-full h-full object-cover hover:brightness-95 transition-all duration-300"
+                    />
+                  </div>
+                )}
+
+                {imageUrls.length === 2 && (
+                  <div className="grid grid-cols-2 gap-1 aspect-video cursor-zoom-in">
+                    {imageUrls.map((url, idx) => (
+                      <div 
+                        key={idx} 
+                        onClick={() => openLightbox(idx)}
+                        className="w-full h-full overflow-hidden"
+                      >
+                        <img
+                          src={url}
+                          alt={`Attachment ${idx + 1}`}
+                          className="w-full h-full object-cover hover:brightness-95 hover:scale-[1.01] transition-all duration-300"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {imageUrls.length === 3 && (
+                  <div className="grid grid-cols-3 gap-1 aspect-video cursor-zoom-in">
+                    <div 
+                      onClick={() => openLightbox(0)}
+                      className="col-span-2 h-full overflow-hidden"
+                    >
+                      <img
+                        src={imageUrls[0]}
+                        alt="Attachment 1"
+                        className="w-full h-full object-cover hover:brightness-95 hover:scale-[1.01] transition-all duration-300"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1 h-full">
+                      {imageUrls.slice(1, 3).map((url, idx) => (
+                        <div 
+                          key={idx + 1} 
+                          onClick={() => openLightbox(idx + 1)}
+                          className="w-full h-[calc(50%-2px)] overflow-hidden"
+                        >
+                          <img
+                            src={url}
+                            alt={`Attachment ${idx + 2}`}
+                            className="w-full h-full object-cover hover:brightness-95 hover:scale-[1.01] transition-all duration-300"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {imageUrls.length >= 4 && (
+                  <div className="grid grid-cols-2 gap-1 aspect-video cursor-zoom-in">
+                    {imageUrls.slice(0, 3).map((url, idx) => (
+                      <div 
+                        key={idx} 
+                        onClick={() => openLightbox(idx)}
+                        className="w-full h-full overflow-hidden"
+                      >
+                        <img
+                          src={url}
+                          alt={`Attachment ${idx + 1}`}
+                          className="w-full h-full object-cover hover:brightness-95 hover:scale-[1.01] transition-all duration-300"
+                        />
+                      </div>
+                    ))}
+                    <div 
+                      onClick={() => openLightbox(3)}
+                      className="w-full h-full overflow-hidden relative group"
+                    >
+                      <img
+                        src={imageUrls[3]}
+                        alt="Attachment 4"
+                        className="w-full h-full object-cover hover:scale-[1.01] transition-transform duration-300"
+                      />
+                      {imageUrls.length > 4 ? (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xl font-black group-hover:bg-black/50 transition-colors">
+                          +{imageUrls.length - 3}
+                        </div>
+                      ) : (
+                        <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -587,6 +700,14 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Lightbox Modal */}
+      <ImageLightbox
+        isOpen={lightboxOpen}
+        images={imageUrls}
+        initialIndex={lightboxIndex}
+        onClose={() => setLightboxOpen(false)}
+      />
     </Modal>
   );
 };
