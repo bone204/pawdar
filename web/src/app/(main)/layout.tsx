@@ -10,7 +10,7 @@ import { APP_ROUTES } from "@/shared/constants/routes";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { AppSidebar, NavItem } from "@/presentation/components/sidebar/AppSidebar";
-import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon, TagIcon } from "@/presentation/components/ui/Icons";
+import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon, TagIcon, GamepadIcon } from "@/presentation/components/ui/Icons";
 import { useGetPetByIdQuery } from "@/infrastructure/rtk/api/pet.api";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { useSearchUsersQuery, useAcceptFriendRequestMutation, useDeclineFriendRequestMutation, useGetReceivedFriendRequestsQuery, useGetFriendsQuery } from "@/infrastructure/rtk/api/user.api";
@@ -178,6 +178,12 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       label: t("main.breeds") || "Giống Loài Thú Cưng",
       route: APP_ROUTES.breeds,
       icon: <TagIcon className="w-5 h-5" />,
+    },
+    {
+      id: "games",
+      label: t("main.games") || "Trò chơi",
+      route: APP_ROUTES.games,
+      icon: <GamepadIcon className="w-5 h-5" />,
     },
     {
       id: "profile",
