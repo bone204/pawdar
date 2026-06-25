@@ -75,10 +75,10 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({
           </button>
           <Button
             id="confirm-delete-post"
-            variant="primary"
+            variant="danger"
             onClick={onConfirm}
             isLoading={isLoading}
-            className="flex-1 bg-danger text-white hover:bg-danger/90 border-danger/10 shadow-none"
+            className="flex-1 shadow-none rounded-xl"
           >
             {t("posts.confirmDelete")}
           </Button>
@@ -122,6 +122,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
     }, 400);
     return () => clearTimeout(handler);
   }, [friendsSearch]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (friendsMenuRef.current && !friendsMenuRef.current.contains(event.target as Node)) {
+        setIsFriendsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const { data: friendsData, isFetching: isFriendsLoading } = useGetFriendsQuery(
     {
@@ -181,6 +191,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [uploadImage] = useUploadImageMutation();
+
+  const [isFriendsMenuOpen, setIsFriendsMenuOpen] = useState(false);
+  const friendsMenuRef = useRef<HTMLDivElement>(null);
 
   const _showToast = (msg: string) => {
     setToast(msg);
@@ -380,15 +393,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
   return (
     <div className="w-full select-none py-2">
       {/* Profile Card Header */}
-      <div className="relative bg-card border border-border rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] mb-8 overflow-hidden transition-all duration-300">
+      <div className="relative bg-card border border-border rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] mb-8 transition-all duration-300">
         {/* Cover Image Section */}
-        <div className="relative h-48 md:h-64 w-full bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 group/cover">
+        <div className="relative h-48 md:h-64 w-full bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 group/cover rounded-t-[23px] overflow-hidden">
           {displayCover && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={displayCover}
               alt="Cover"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-t-[23px]"
             />
           )}
           {isMe && (
@@ -508,45 +521,89 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
 
                     {profile.friendship?.status === "PENDING_SENT" && (
                       <Button
-                        variant="secondary"
+                        variant="danger-outline"
                         onClick={() => handleDeclineRequest(profile.id)}
                         isLoading={isDeclining}
-                        className="w-full rounded-2xl text-sm font-black active:scale-95 transition-transform text-danger hover:bg-danger/5"
+                        className="w-full rounded-2xl text-sm font-black active:scale-95 transition-transform"
                       >
                         {t("friends.cancel")}
                       </Button>
                     )}
 
                     {profile.friendship?.status === "PENDING_RECEIVED" && (
-                      <div className="flex flex-col gap-2 w-full">
+                      <div className="flex gap-2 w-full md:min-w-[280px]">
                         <Button
                           variant="primary"
+                          size="sm"
                           onClick={() => handleAcceptRequest(profile.id)}
                           isLoading={isAccepting}
-                          className="w-full rounded-2xl text-sm font-black active:scale-95 transition-transform"
+                          className="flex-1 rounded-2xl text-xs font-bold active:scale-95 transition-transform flex items-center justify-center gap-1.5 py-2 px-3 whitespace-nowrap"
                         >
-                          {t("friends.accept")}
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          <span>{t("notification.accept") || "Đồng ý"}</span>
                         </Button>
                         <Button
-                          variant="secondary"
+                          variant="danger-outline"
+                          size="sm"
                           onClick={() => handleDeclineRequest(profile.id)}
                           isLoading={isDeclining}
-                          className="w-full rounded-2xl text-sm font-black active:scale-95 transition-transform text-danger hover:bg-danger/5"
+                          className="flex-1 rounded-2xl text-xs font-bold active:scale-95 transition-transform flex items-center justify-center gap-1.5 py-2 px-3 whitespace-nowrap shadow-xs"
                         >
-                          {t("friends.decline")}
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                            <line x1="18" x2="6" y1="6" y2="18" />
+                            <line x1="6" x2="18" y1="6" y2="18" />
+                          </svg>
+                          <span>{t("notification.decline") || "Từ chối"}</span>
                         </Button>
                       </div>
                     )}
 
                     {profile.friendship?.status === "FRIENDS" && (
-                      <Button
-                        variant="secondary"
-                        onClick={handleUnfriend}
-                        isLoading={isUnfriending}
-                        className="w-full rounded-2xl text-sm font-black active:scale-95 transition-transform text-danger border-danger/30 hover:bg-danger/5"
-                      >
-                        {t("friends.unfriend")}
-                      </Button>
+                      <div className="relative w-full" ref={friendsMenuRef}>
+                        <Button
+                          variant="neutral"
+                          onClick={() => setIsFriendsMenuOpen(!isFriendsMenuOpen)}
+                          className="w-full rounded-2xl text-sm font-black active:scale-95 transition-transform flex items-center justify-center gap-1.5 py-2.5"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-success">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          <span>{t("profile.statsFriends") || "Bạn bè"}</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="2.5"
+                            stroke="currentColor"
+                            className={`w-3 h-3 text-foreground/60 transition-transform duration-300 ${isFriendsMenuOpen ? "rotate-180" : "rotate-0"}`}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                          </svg>
+                        </Button>
+
+                        {/* Dropdown Menu */}
+                        <div
+                          className={`absolute right-0 mt-2 w-full bg-card border border-border shadow-[0_4px_24px_rgba(62,46,37,0.08)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] rounded-2xl p-1.5 z-50 transition-all duration-300 ease-out origin-top-right ${
+                            isFriendsMenuOpen
+                              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+                              : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+                          }`}
+                        >
+                          <button
+                            onClick={() => {
+                              setIsFriendsMenuOpen(false);
+                              handleUnfriend();
+                            }}
+                            disabled={isUnfriending}
+                            className="w-full px-3.5 py-2.5 flex items-center gap-2.5 rounded-xl text-xs font-bold text-left text-danger hover:bg-danger/10 active:bg-danger/15 transition-all duration-200 cursor-pointer"
+                          >
+                            <span className="text-sm">💔</span>
+                            <span>{t("friends.unfriend") || "Hủy kết bạn"}</span>
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
