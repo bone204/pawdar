@@ -14,6 +14,7 @@ export const chatMapper = {
       createdAt: dto.createdAt,
       updatedAt: dto.updatedAt,
       sender: dto.sender,
+      isRead: dto.isRead,
     };
   },
 
