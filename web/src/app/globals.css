@@ -282,3 +282,28 @@ input[type="number"] {
   appearance: textfield;
 }
 
+/* View Transition API for Theme Toggle */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 
+ * Light -> Dark: New view (dark) sits on top and expands. 
+ * Old view (light) sits underneath.
+ */
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/* 
+ * Dark -> Light: We still want the circular reveal. 
+ * The class .dark is removed when going to light.
+ * Wait, actually when going to Light, we can just let Light (new) sit on top and expand. 
+ * If so, we don't need any special dark rules!
+ */
+

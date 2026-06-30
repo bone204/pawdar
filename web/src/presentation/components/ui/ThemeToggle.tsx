@@ -6,9 +6,49 @@ import { useTheme } from "@/presentation/providers/ThemeProvider";
 export const ThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 
+  const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const isTransitionSupported = typeof document !== 'undefined' && 'startViewTransition' in document;
+
+    if (!isTransitionSupported) {
+      toggleTheme();
+      return;
+    }
+
+    // Find the center of the button
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    // @ts-ignore
+    const transition = document.startViewTransition(() => {
+      toggleTheme();
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 500,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
+  };
+
   return (
     <button
-      onClick={toggleTheme}
+      onClick={handleToggle}
       className="w-11 h-11 bg-secondary text-foreground rounded-full border border-border transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 flex items-center justify-center cursor-pointer"
       aria-label="Toggle Theme"
     >
