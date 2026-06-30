@@ -5,16 +5,13 @@ import { Modal } from "@/presentation/components/ui/Modal";
 import { Button } from "@/presentation/components/ui/Button";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
-import { useUploadImageMutation } from "@/infrastructure/rtk/api/upload.api";
-import {
-  useCreatePostMutation,
-  useUpdatePostMutation,
-  type PostResponseDto,
-} from "@/infrastructure/rtk/api/post.api";
+import { useUpload } from "@/application/hooks/useUpload";
+import { usePosts } from "@/application/hooks/usePosts";
+import { PostEntity } from "@/domain/entities/post.entity";
 
 export interface PostFormModalProps {
   isOpen: boolean;
-  editingPost: PostResponseDto | null;
+  editingPost: PostEntity | null;
   onClose: () => void;
   onSuccess: (msg: string) => void;
 }
@@ -38,9 +35,8 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
   onSuccess,
 }) => {
   const { locale, t } = useTranslation();
-  const [createPost, { isLoading: isCreating }] = useCreatePostMutation();
-  const [updatePost, { isLoading: isUpdating }] = useUpdatePostMutation();
-  const [uploadImage] = useUploadImageMutation();
+  const { createPost, updatePost, isCreating, isUpdating } = usePosts();
+  const { uploadImage } = useUpload();
 
   const [form, setForm] = useState<PostFormValues>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof PostFormValues, string>>>({});
@@ -133,10 +129,7 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
   };
 
   const _uploadToCloudinary = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await uploadImage(formData).unwrap();
-    return res.url;
+    return await uploadImage(file);
   };
 
   const _onSubmit = async () => {
@@ -158,10 +151,10 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
       };
 
       if (editingPost) {
-        await updatePost({ id: editingPost.id, body: payload }).unwrap();
+        await updatePost(editingPost.id, payload);
         onSuccess(t("api.codes.update_post_successful"));
       } else {
-        await createPost(payload).unwrap();
+        await createPost(payload);
         onSuccess(t("api.codes.create_post_successful"));
       }
       onClose();

@@ -10,15 +10,12 @@ import { APP_ROUTES } from "@/shared/constants/routes";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { AppSidebar, NavItem } from "@/presentation/components/sidebar/AppSidebar";
+import { RightSidebar } from "@/presentation/components/sidebar/RightSidebar";
 import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon, TagIcon, GamepadIcon } from "@/presentation/components/ui/Icons";
-import { useGetPetByIdQuery } from "@/infrastructure/rtk/api/pet.api";
+import { usePetDetail } from "@/application/hooks/usePets";
 import { TextField } from "@/presentation/components/ui/TextField";
-import { useSearchUsersQuery, useAcceptFriendRequestMutation, useDeclineFriendRequestMutation, useGetReceivedFriendRequestsQuery, useGetFriendsQuery } from "@/infrastructure/rtk/api/user.api";
-import {
-  useGetNotificationsQuery,
-  useMarkAsReadMutation,
-  useMarkAllAsReadMutation,
-} from "@/infrastructure/rtk/api/notification.api";
+import { useUserSearch, useFriends, useFriendRequests, useUsers } from "@/application/hooks/useUsers";
+import { useNotifications } from "@/application/hooks/useNotifications";
 import { SocketProvider } from "@/presentation/providers/SocketProvider";
 import { authApi } from "@/infrastructure/rtk/api/auth.api";
 import { breedApi } from "@/infrastructure/rtk/api/breed.api";
@@ -28,6 +25,7 @@ import { postApi } from "@/infrastructure/rtk/api/post.api";
 import { userApi } from "@/infrastructure/rtk/api/user.api";
 import { notificationApi } from "@/infrastructure/rtk/api/notification.api";
 import { gameApi } from "@/infrastructure/rtk/api/game.api";
+import { ChatWidgetContainer } from "@/presentation/components/chat/ChatWidgetContainer";
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
@@ -36,6 +34,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileFriendsOpen, setIsMobileFriendsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   
@@ -46,25 +45,16 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<{ id: string; fullName: string; avatarUrl: string | null; email?: string }[]>([]);
 
   // Fetch Notifications
-  const { data: notifications = [] } = useGetNotificationsQuery(undefined, {
-    skip: !user,
-  });
+  const { data: notifications = [], markAsRead, markAllAsRead } = useNotifications(!user);
 
-  const { data: receivedRequests = [] } = useGetReceivedFriendRequestsQuery(undefined, {
-    skip: !user,
-  });
+  const { received: receivedRequests = [] } = useFriendRequests();
 
-  const { data: friendsList } = useGetFriendsQuery({ limit: 100 }, {
-    skip: !user,
-  });
-
-  const [markAsRead] = useMarkAsReadMutation();
-  const [markAllAsRead] = useMarkAllAsReadMutation();
-  const [acceptFriendRequest] = useAcceptFriendRequestMutation();
-  const [declineFriendRequest] = useDeclineFriendRequestMutation();
+  const { data: friendsList } = useFriends({ limit: 100 });
+  const { acceptFriendRequest, declineFriendRequest } = useUsers();
 
   const friends = friendsList?.items || [];
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -113,9 +103,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  const { data: searchUsersResult, isFetching: isSearching } = useSearchUsersQuery(
+  const { data: searchUsersResult, isLoading: isSearching } = useUserSearch(
     debouncedQuery,
-    { skip: !debouncedQuery.trim() }
+    !debouncedQuery.trim()
   );
 
   useEffect(() => {
@@ -198,9 +188,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   // Check if current route is a pet detail page
   const petIdMatch = pathname.match(/^\/my-pets\/([^/]+)$/i);
   const activePetId = petIdMatch ? petIdMatch[1] : "";
-  const { data: activePet } = useGetPetByIdQuery(activePetId, {
-    skip: !activePetId,
-  });
+  const { data: activePet } = usePetDetail(activePetId, !activePetId);
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden transition-colors duration-300">
@@ -219,27 +207,42 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       <div className="flex-grow flex flex-col min-w-0">
         {/* Topbar Header */}
         <header className="h-20 border-b border-border bg-card/50 backdrop-blur-md px-4 md:px-8 flex items-center justify-between shrink-0 transition-colors duration-300 relative z-40">
-          <div className="flex items-center gap-3">
-            {/* Mobile Hamburger */}
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary/50 active:scale-95 transition-all cursor-pointer"
-              aria-label="Open menu"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            </button>
-            {/* Back button for subpages */}
-            {activePetId && (
+          {/* LEFT & SEARCH CONTAINER */}
+          <div className="flex items-center flex-1 min-w-0">
+            {/* LEFT SECTION (Hamburger + Back button) - Hidden on mobile if search is open */}
+            <div className={`items-center gap-2 md:gap-3 shrink-0 ${isMobileSearchOpen ? "hidden md:flex" : "flex"} ${!isMobileSearchOpen && !activePetId ? "mr-2 md:mr-4" : ""}`}>
+              {/* Mobile Hamburger */}
               <button
-                onClick={() => router.push("/my-pets")}
-                className="p-2 rounded-xl text-foreground hover:text-primary hover:bg-secondary/50 active:scale-95 transition-all cursor-pointer flex items-center justify-center mr-1"
-                aria-label="Back to My Pets"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="md:hidden p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary/50 active:scale-95 transition-all cursor-pointer shrink-0"
+                aria-label="Open menu"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
               </button>
-            )}
-            
-            <div className="relative w-56 md:w-80 select-none" ref={searchContainerRef}>
+              
+              {/* Mobile Search Icon Button */}
+              <button
+                onClick={() => setIsMobileSearchOpen(true)}
+                className="md:hidden w-10 h-10 rounded-xl flex items-center justify-center text-foreground hover:bg-secondary active:scale-95 transition-all cursor-pointer"
+                aria-label="Search"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </button>
+
+              {/* Back button for subpages */}
+              {activePetId && (
+                <button
+                  onClick={() => router.push("/my-pets")}
+                  className="p-2 rounded-xl text-foreground hover:text-primary hover:bg-secondary/50 active:scale-95 transition-all cursor-pointer flex items-center justify-center mr-1 shrink-0"
+                  aria-label="Back to My Pets"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                </button>
+              )}
+            </div>
+
+            {/* SEARCH SECTION */}
+            <div className={`relative select-none flex-1 transition-all duration-300 ${isMobileSearchOpen ? "block max-w-none animate-in fade-in zoom-in-95" : "hidden md:block max-w-xs"}`} ref={searchContainerRef}>
               <TextField
                 id="user-search"
                 placeholder={t("common.searchUsersPlaceholder") || "Tìm kiếm người dùng..."}
@@ -249,7 +252,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
                   setIsSearchFocused(true);
                 }}
                 onFocus={() => setIsSearchFocused(true)}
-                className="w-full rounded-xl"
+                className="w-full rounded-xl text-sm"
                 leftIcon={
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 }
@@ -371,15 +374,34 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* App name on mobile top bar */}
-            <div className="font-black text-lg text-foreground md:hidden select-none">
-              {t("common.appName") || "PAWDAR"}
-            </div>
+            {/* CANCEL BUTTON (Mobile only) */}
+            {isMobileSearchOpen && (
+              <button
+                onClick={() => {
+                  setIsMobileSearchOpen(false);
+                  setSearchQuery("");
+                  setIsSearchFocused(false);
+                }}
+                className="md:hidden ml-2 text-sm font-bold text-muted hover:text-foreground shrink-0 cursor-pointer animate-in fade-in"
+              >
+                Hủy
+              </button>
+            )}
           </div>
 
-          <div className="flex items-center gap-3 md:gap-6">
+          {/* RIGHT SECTION (Icons) - Hidden on mobile if search is open */}
+          <div className={`items-center gap-2 md:gap-6 shrink-0 ${isMobileSearchOpen ? "hidden md:flex" : "flex"}`}>
             <LanguageSwitcher />
             <ThemeToggle />
+
+            {/* Mobile Friends List Button */}
+            <button
+              onClick={() => setIsMobileFriendsOpen(true)}
+              className="xl:hidden w-11 h-11 bg-secondary text-foreground rounded-full border border-border transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none flex items-center justify-center cursor-pointer relative"
+              aria-label="View friends"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </button>
 
             {/* Realtime Notification Bell Dropdown */}
             <div className="relative" ref={notificationDropdownRef}>
@@ -560,13 +582,56 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Scrollable Dashboard View */}
-        <main className="flex-grow overflow-y-auto px-4 md:px-8 py-6 bg-background">
-          <div className="w-full">
-            {children}
+        {/* ── Mobile & Tablet Friends Drawer ────────────────────────────────────── */}
+        {isMobileFriendsOpen && (
+          <div className="xl:hidden fixed inset-0 z-[100] flex justify-end">
+            {/* Background Overlay */}
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+              onClick={() => setIsMobileFriendsOpen(false)}
+            />
+
+            {/* Drawer Content */}
+            <div className="relative w-80 max-w-[85vw] h-full bg-background border-l border-border shadow-2xl flex flex-col transition-transform duration-300 animate-in slide-in-from-right">
+              {/* Close Button */}
+              <button
+                onClick={() => setIsMobileFriendsOpen(false)}
+                className="absolute top-4 left-4 z-50 p-2 bg-secondary/80 text-foreground rounded-full hover:bg-secondary active:scale-95 transition-all"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+              
+              <div className="flex-1 overflow-hidden pt-16">
+                <RightSidebar />
+              </div>
+            </div>
           </div>
-        </main>
+        )}
+
+        {/* Content Area with Flex */}
+        <div className={`flex-grow flex overflow-y-auto bg-background ${pathname === APP_ROUTES.dashboard ? 'justify-between' : 'justify-center'}`}>
+          
+          {/* Phantom Spacer to balance the Right Sidebar (keeps posts perfectly centered) */}
+          {pathname === APP_ROUTES.dashboard && (
+            <div className="hidden xl:block w-80 shrink-0 pointer-events-none" />
+          )}
+
+          {/* Main Content */}
+          <main className="flex-grow px-4 md:px-8 py-6 min-h-full flex justify-center">
+            <div className="w-full">
+              {children}
+            </div>
+          </main>
+          
+          {/* Right Sidebar */}
+          {pathname === APP_ROUTES.dashboard && (
+            <div className="hidden xl:block w-80 shrink-0 sticky top-0 h-[calc(100vh-80px)] border-l border-border/50 bg-background z-10">
+              <RightSidebar />
+            </div>
+          )}
+        </div>
       </div>
+      <ChatWidgetContainer />
     </div>
   );
 }

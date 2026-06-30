@@ -14,7 +14,9 @@
     "searchUsersPlaceholder": "Search users...",
     "noUsersFound": "No users found",
     "recentSearches": "Recent searches",
-    "clearAll": "Clear all"
+    "clearAll": "Clear all",
+    "justNow": "Just now",
+    "active": "Active"
   },
   "landing": {
     "title": "Welcome to Pawdar",
@@ -199,7 +201,9 @@
   },
   "sidebar": {
     "main_menu": "Main Menu",
-    "close_menu": "Collapse"
+    "close_menu": "Collapse",
+    "contacts": "Contacts",
+    "noFriendsYet": "You don't have any contacts yet."
   },
   "main": {
     "dashboard": "Home",
@@ -525,5 +529,11 @@
       "mistakes": "Mistakes",
       "howToPlay": "How to play: Select an empty cell on the 9x9 grid, then select a number from 1 to 9 on the keyboard below to fill it in."
     }
+  },
+  "chat": {
+    "typeMessage": "Type a message...",
+    "revokedMessage": "This message was revoked",
+    "editingMessage": "Editing message",
+    "edited": "(edited)"
   }
 }

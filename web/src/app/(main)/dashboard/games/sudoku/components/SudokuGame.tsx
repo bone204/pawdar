@@ -3,11 +3,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Button } from "@/presentation/components/ui/Button";
-import {
-  useGetSudokuStageByIdQuery,
-  useSubmitSudokuRecordMutation,
-} from "@/infrastructure/rtk/api/game.api";
-import { SudokuStageDto } from "@/application/dto/game.dto";
+import { useGames, useSudokuStageDetail } from "@/application/hooks/useGames";
+import { SudokuStageEntity } from "@/domain/entities/game.entity";
 
 type Cell = {
   value: number;
@@ -16,7 +13,7 @@ type Cell = {
 };
 
 interface SudokuGameProps {
-  stage: SudokuStageDto;
+  stage: SudokuStageEntity;
   onBack: () => void;
 }
 
@@ -35,8 +32,8 @@ export default function SudokuGame({ stage, onBack }: SudokuGameProps) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // RTK Query Hooks
-  const { data: stageDetail, isFetching: isLoadingStage } = useGetSudokuStageByIdQuery(stage.id);
-  const [submitRecord] = useSubmitSudokuRecordMutation();
+  const { data: stageDetail, isLoading: isLoadingStage } = useSudokuStageDetail(stage.id);
+  const { createSudokuRecord } = useGames();
 
   // Load selected stage details into local state
   useEffect(() => {
@@ -85,14 +82,10 @@ export default function SudokuGame({ stage, onBack }: SudokuGameProps) {
       hasSubmitted.current !== `${stage.id}-${gameStatus}`
     ) {
       hasSubmitted.current = `${stage.id}-${gameStatus}`;
-      submitRecord({
-        stageId: stage.id,
-        timeTaken: timer,
-        mistakes,
-        status: gameStatus,
-      }).catch((err) => console.error("Failed to submit record", err));
+      createSudokuRecord(stage.id, timer, mistakes, gameStatus as 'won' | 'lost')
+        .catch((err) => console.error("Failed to submit record", err));
     }
-  }, [gameStatus, stage.id, timer, mistakes, submitRecord]);
+  }, [gameStatus, stage.id, timer, mistakes, createSudokuRecord]);
 
   // Initialize selected stage again (Restart)
   const initGame = () => {

@@ -9,6 +9,7 @@ import { UserModule } from './modules/user/user.module';
 import { SocketModule } from './modules/socket/socket.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { GameModule } from './modules/game/game.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { GameModule } from './modules/game/game.module';
     SocketModule,
     NotificationModule,
     GameModule,
+    ChatModule,
   ],
   controllers: [],
   providers: [],

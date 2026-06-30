@@ -4,12 +4,9 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/presentation/components/ui/Button";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { Modal } from "@/presentation/components/ui/Modal";
-import {
-  useCreatePetGalleryMutation,
-  useUpdatePetGalleryMutation,
-} from "@/infrastructure/rtk/api/pet.api";
-import { useUploadImageMutation } from "@/infrastructure/rtk/api/upload.api";
-import type { PetGalleryResponseDto } from "@/application/dto/pet.dto";
+import { usePets } from "@/application/hooks/usePets";
+import { useUpload } from "@/application/hooks/useUpload";
+import { PetGalleryEntity } from "@/domain/entities/pet.entity";
 
 interface PetGalleryFormValues {
   description: string;
@@ -31,7 +28,7 @@ const EMPTY_FORM: PetGalleryFormValues = {
 export interface PetGalleryFormModalProps {
   isOpen: boolean;
   petId: string;
-  editingImage: PetGalleryResponseDto | null;
+  editingImage: PetGalleryEntity | null;
   onClose: () => void;
   onSuccess: (msg: string) => void;
 }
@@ -43,9 +40,8 @@ export const PetGalleryFormModal: React.FC<PetGalleryFormModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [createGallery, { isLoading: isCreating }] = useCreatePetGalleryMutation();
-  const [updateGallery, { isLoading: isUpdating }] = useUpdatePetGalleryMutation();
-  const [uploadImage] = useUploadImageMutation();
+  const { createPetGallery, updatePetGallery, isCreatingGallery: isCreating, isUpdatingGallery: isUpdating } = usePets();
+  const { uploadImage } = useUpload();
 
   const [form, setForm] = useState<PetGalleryFormValues>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof PetGalleryFormValues, string>>>({});
@@ -95,10 +91,7 @@ export const PetGalleryFormModal: React.FC<PetGalleryFormModalProps> = ({
   };
 
   const _uploadToCloudinary = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await uploadImage(formData).unwrap();
-    return res.url;
+    return await uploadImage(file);
   };
 
   const _onSubmit = async () => {
@@ -117,17 +110,10 @@ export const PetGalleryFormModal: React.FC<PetGalleryFormModalProps> = ({
       };
 
       if (editingImage) {
-        await updateGallery({
-          petId,
-          id: editingImage.id,
-          body,
-        }).unwrap();
+        await updatePetGallery(petId, editingImage.id, body);
         onSuccess("Đã cập nhật ảnh thư viện thành công ✨");
       } else {
-        await createGallery({
-          petId,
-          body,
-        }).unwrap();
+        await createPetGallery(petId, body);
         onSuccess("Đã thêm ảnh vào thư viện thành công ✨");
       }
       onClose();

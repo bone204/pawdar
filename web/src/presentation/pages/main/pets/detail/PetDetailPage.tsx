@@ -3,8 +3,8 @@
 import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
-import { useGetPetByIdQuery, useDeletePetGalleryMutation } from "@/infrastructure/rtk/api/pet.api";
-import { useGetBreedByIdQuery } from "@/infrastructure/rtk/api/breed.api";
+import { usePetDetail, usePets } from "@/application/hooks/usePets";
+import { useBreedDetail } from "@/application/hooks/useBreeds";
 import { Button } from "@/presentation/components/ui/Button";
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { toPng } from "html-to-image";
@@ -35,13 +35,9 @@ const FakeQRCode: React.FC<{ className?: string }> = ({ className = "" }) => (
 export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const { data: pet, isLoading, isError } = useGetPetByIdQuery(id, {
-    skip: !id,
-  });
+  const { data: pet, isLoading, error: isError } = usePetDetail(id, !id);
 
-  const { data: breed } = useGetBreedByIdQuery(pet?.breedId || "", {
-    skip: !pet?.breedId,
-  });
+  const { data: breed } = useBreedDetail(pet?.breedId ?? "", !pet?.breedId);
 
   const [isDownloading, setIsDownloading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -53,7 +49,7 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
   const [deletingGalleryImage, setDeletingGalleryImage] = useState<any>(null);
   const [activeLightboxIndex, setActiveLightboxIndex] = useState<number | null>(null);
   const [isAvatarPreviewOpen, setIsAvatarPreviewOpen] = useState(false);
-  const [deletePetGallery, { isLoading: isDeletingGallery }] = useDeletePetGalleryMutation();
+  const { deletePetGallery, isDeletingGallery } = usePets();
 
   // References for 3D card tilt animation
   const cardRef = useRef<HTMLDivElement>(null);
@@ -615,7 +611,7 @@ export const PetDetailPage: React.FC<PetDetailPageProps> = ({ id }) => {
             isOpen={!!deletingGalleryImage}
             onConfirm={async () => {
               try {
-                await deletePetGallery({ petId: id, id: deletingGalleryImage.id }).unwrap();
+                await deletePetGallery(id, deletingGalleryImage.id);
                 setDeletingGalleryImage(null);
                 _showToast("Đã xóa ảnh thành công 🗑️");
               } catch (err) {

@@ -45,6 +45,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: #221711;
   --foreground: #F5EFE6;
   
@@ -132,6 +133,25 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted);
 }
 
 /* Re-enable text selection for form elements */
@@ -281,4 +301,29 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* View Transition API for Theme Toggle */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 
+ * Light -> Dark: New view (dark) sits on top and expands. 
+ * Old view (light) sits underneath.
+ */
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/* 
+ * Dark -> Light: We still want the circular reveal. 
+ * The class .dark is removed when going to light.
+ * Wait, actually when going to Light, we can just let Light (new) sit on top and expand. 
+ * If so, we don't need any special dark rules!
+ */
 

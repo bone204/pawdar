@@ -14,7 +14,9 @@
     "searchUsersPlaceholder": "Tìm kiếm người dùng...",
     "noUsersFound": "Không tìm thấy người dùng",
     "recentSearches": "Tìm kiếm gần đây",
-    "clearAll": "Xóa tất cả"
+    "clearAll": "Xóa tất cả",
+    "justNow": "Vừa xong",
+    "active": "Hoạt động"
   },
   "landing": {
     "title": "Chào mừng đến với Pawdar",
@@ -199,7 +201,9 @@
   },
   "sidebar": {
     "main_menu": "Menu chính",
-    "close_menu": "Thu gọn"
+    "close_menu": "Thu gọn",
+    "contacts": "Người liên hệ",
+    "noFriendsYet": "Bạn chưa có người liên hệ nào."
   },
   "main": {
     "dashboard": "Trang Chủ",
@@ -525,5 +529,11 @@
       "mistakes": "Lỗi",
       "howToPlay": "Cách chơi: Chọn một ô trống trên lưới 9x9, sau đó nhấn chọn số từ 1 đến 9 ở thanh công cụ phía dưới để điền số."
     }
+  },
+  "chat": {
+    "typeMessage": "Nhập tin nhắn...",
+    "revokedMessage": "Tin nhắn đã bị thu hồi",
+    "editingMessage": "Đang chỉnh sửa tin nhắn",
+    "edited": "(đã chỉnh sửa)"
   }
 }

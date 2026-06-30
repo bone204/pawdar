@@ -5,27 +5,16 @@ import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Button } from "@/presentation/components/ui/Button";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { EditProfileModal } from "./components/EditProfileModal";
-import { useUploadImageMutation } from "@/infrastructure/rtk/api/upload.api";
-import {
-  useGetMyProfileQuery,
-  useGetUserProfileQuery,
-  useUpdateProfileMutation,
-  useSendFriendRequestMutation,
-  useAcceptFriendRequestMutation,
-  useDeclineFriendRequestMutation,
-  useUnfriendMutation,
-  useGetFriendsQuery,
-  useGetReceivedFriendRequestsQuery,
-  useGetSentFriendRequestsQuery,
-} from "@/infrastructure/rtk/api/user.api";
-import {
-  useGetMyPostsQuery,
-  useGetApprovedPostsQuery,
-  useDeletePostMutation,
-  useCreatePostMutation,
-  useUpdatePostMutation,
-  type PostResponseDto,
-} from "@/infrastructure/rtk/api/post.api";
+import { useUpload } from "@/application/hooks/useUpload";
+import { 
+  useMyProfile, 
+  useUserProfile, 
+  useFriends, 
+  useFriendRequests, 
+  useUsers 
+} from "@/application/hooks/useUsers";
+import { useMyPosts, useApprovedPosts, usePosts } from "@/application/hooks/usePosts";
+import { PostEntity } from "@/domain/entities/post.entity";
 import { PostCard } from "@/presentation/pages/main/dashboard/components/PostCard";
 import { PostFormModal } from "@/presentation/pages/main/dashboard/components/PostFormModal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -105,11 +94,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
   const {
     data: profile,
     isLoading: isProfileLoading,
-    isError: isProfileError,
+    error: isProfileError,
     refetch: refetchProfile,
   } = isMe
-    ? useGetMyProfileQuery(undefined, { skip: !targetId })
-    : useGetUserProfileQuery(targetId, { skip: !targetId });
+    ? useMyProfile()
+    : useUserProfile(targetId, !targetId);
 
   // Friends search and pagination for side card
   const [friendsSearch, setFriendsSearch] = useState("");
@@ -133,49 +122,39 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const { data: friendsData, isFetching: isFriendsLoading } = useGetFriendsQuery(
+  const { data: friendsData, isFetching: isFriendsLoading } = useFriends(
     {
       search: debouncedSearch || undefined,
       page: 1,
       limit: friendsLimit,
-    },
-    { skip: !profile }
+    }
   );
 
-  const { data: receivedRequests, refetch: refetchReceived } = useGetReceivedFriendRequestsQuery(
-    undefined,
-    { skip: !isMe }
-  );
-  const { data: sentRequests, refetch: refetchSent } = useGetSentFriendRequestsQuery(
-    undefined,
-    { skip: !isMe }
-  );
+  const { received: receivedRequests, sent: sentRequests, refetchReceived, refetchSent } = useFriendRequests();
+  // We can't directly call refetch on friend requests since the viewmodel hides it. 
+  // However, refetchProfile() triggers global invalidation anyway.
 
   // Post Query for right column
   const [postsPage, setPostsPage] = useState(1);
   const postsLimit = 5;
   
-  const { data: myPostsData, isLoading: isMyPostsLoading } = useGetMyPostsQuery({
+  const { data: myPostsData, isLoading: isMyPostsLoading } = useMyPosts({
     page: postsPage,
     limit: postsLimit,
-  }, { skip: !isMe });
+  });
 
-  const { data: otherPostsData, isLoading: isOtherPostsLoading } = useGetApprovedPostsQuery({
+  const { data: otherPostsData, isLoading: isOtherPostsLoading } = useApprovedPosts({
     page: postsPage,
     limit: postsLimit,
     userId: targetId,
-  }, { skip: isMe });
+  });
 
   const postsData = isMe ? myPostsData : otherPostsData;
   const isPostsLoading = isMe ? isMyPostsLoading : isOtherPostsLoading;
 
   // Mutations
-  const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
-  const [sendFriendRequest, { isLoading: isSendingReq }] = useSendFriendRequestMutation();
-  const [acceptFriendRequest, { isLoading: isAccepting }] = useAcceptFriendRequestMutation();
-  const [declineFriendRequest, { isLoading: isDeclining }] = useDeclineFriendRequestMutation();
-  const [unfriend, { isLoading: isUnfriending }] = useUnfriendMutation();
-  const [deletePost, { isLoading: isDeletingPost }] = useDeletePostMutation();
+  const { updateProfile, sendFriendRequest, acceptFriendRequest, declineFriendRequest, unfriend, isUpdating, isSending: isSendingReq, isAccepting, isDeclining, isUnfriending } = useUsers();
+  const { deletePost, isDeleting: isDeletingPost } = usePosts();
 
   // State
   const [isEditing, setIsEditing] = useState(false);
@@ -185,12 +164,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
 
   // Post Modals states
   const [isPostFormOpen, setIsPostFormOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState<PostResponseDto | null>(null);
+  const [editingPost, setEditingPost] = useState<PostEntity | null>(null);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
-  const [uploadImage] = useUploadImageMutation();
+  const { uploadImage, isUploading } = useUpload();
 
   const [isFriendsMenuOpen, setIsFriendsMenuOpen] = useState(false);
   const friendsMenuRef = useRef<HTMLDivElement>(null);
@@ -212,17 +191,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
 
     setIsUploadingAvatar(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploadRes = await uploadImage(formData).unwrap();
-      
+      const url = await uploadImage(file);
       await updateProfile({
         fullName: profile?.fullName || "",
-        avatarUrl: uploadRes.url,
-      }).unwrap();
+        avatarUrl: url,
+      });
 
       dispatch(updateUser({
-        avatarUrl: uploadRes.url,
+        avatarUrl: url,
       }));
 
       _showToast(t("pets.updateSuccess"));
@@ -246,17 +222,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
 
     setIsUploadingCover(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploadRes = await uploadImage(formData).unwrap();
+      const url = await uploadImage(file);
 
       await updateProfile({
         fullName: profile?.fullName || "",
-        coverUrl: uploadRes.url,
-      }).unwrap();
+        coverUrl: url,
+      });
 
       dispatch(updateUser({
-        coverUrl: uploadRes.url,
+        coverUrl: url,
       }));
 
       _showToast(t("profile.updateCoverSuccess"));
@@ -272,7 +246,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
   const handleSendRequest = async () => {
     if (!profile) return;
     try {
-      await sendFriendRequest(profile.id).unwrap();
+      await sendFriendRequest(profile.id);
       _showToast(t("friends.sendSuccess"));
       refetchProfile();
       if (isMe) refetchSent();
@@ -283,7 +257,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
 
   const handleAcceptRequest = async (senderId: string) => {
     try {
-      await acceptFriendRequest(senderId).unwrap();
+      await acceptFriendRequest(senderId);
       _showToast(t("friends.acceptSuccess"));
       refetchProfile();
       if (isMe) refetchReceived();
@@ -294,7 +268,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
 
   const handleDeclineRequest = async (senderId: string) => {
     try {
-      await declineFriendRequest(senderId).unwrap();
+      await declineFriendRequest(senderId);
       _showToast(t("friends.declineSuccess"));
       refetchProfile();
       if (isMe) {
@@ -309,7 +283,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
   const handleUnfriend = async () => {
     if (!profile) return;
     try {
-      await unfriend(profile.id).unwrap();
+      await unfriend(profile.id);
       _showToast(t("friends.unfriendSuccess"));
       refetchProfile();
     } catch (err) {
@@ -318,7 +292,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
   };
 
   // Post Actions
-  const handleEditPost = (post: PostResponseDto) => {
+  const handleEditPost = (post: PostEntity) => {
     setEditingPost(post);
     setIsPostFormOpen(true);
   };
@@ -330,7 +304,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId }) => {
   const handleConfirmDeletePost = async () => {
     if (!deletingPostId) return;
     try {
-      await deletePost(deletingPostId).unwrap();
+      await deletePost(deletingPostId);
       setDeletingPostId(null);
       _showToast(t("api.codes.delete_post_successful") || "Xóa bài đăng thành công!");
     } catch (err) {

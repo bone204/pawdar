@@ -11,7 +11,7 @@ import { APP_ROUTES } from "@/shared/constants/routes";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { Button } from "@/presentation/components/ui/Button";
 import { Header } from "@/presentation/components/Header";
-import { useSignUpMutation } from "@/infrastructure/rtk/api/auth.api";
+import { useAuth } from "@/application/hooks/useAuth";
 import { useApiErrorService } from "@/application/services/api-error.service";
 import dynamic from "next/dynamic";
 import { LOTTIES } from "@/shared/constants/lotties";
@@ -50,7 +50,7 @@ type SignUpFormData = z.infer<typeof signUpSchema>;
 export const RegisterPage: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [signUp, { isLoading, error }] = useSignUpMutation();
+  const { signUp, isSigningUp: isLoading, signUpError: error } = useAuth();
   const { translateError } = useApiErrorService();
 
   const {
@@ -67,7 +67,7 @@ export const RegisterPage: React.FC = () => {
         fullName: data.fullName,
         email: data.email,
         password: data.password,
-      }).unwrap();
+      });
 
       router.push(`${APP_ROUTES.verifyEmail}?email=${encodeURIComponent(data.email)}`);
     } catch {

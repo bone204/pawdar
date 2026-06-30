@@ -22,6 +22,10 @@ export const API_ENDPOINTS = {
     profile: "/user/profile",
     friends: "/user/friends",
   },
+  chat: {
+    conversations: "/chat/conversations",
+    messages: "/chat/messages",
+  },
   games: {
     sudokuStages: "/games/sudoku/stages",
     sudokuRecords: "/games/sudoku/records",

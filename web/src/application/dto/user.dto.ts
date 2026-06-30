@@ -5,6 +5,8 @@ export interface UserProfileDto extends UserDto {
   address?: string | null;
   coverUrl?: string | null;
   createdAt: string;
+  isOnline?: boolean;
+  lastActiveAt?: string | null;
   pets: {
     id: string;
     name: string;
@@ -42,6 +44,8 @@ export interface FriendDto {
   email: string;
   bio?: string | null;
   address?: string | null;
+  isOnline?: boolean;
+  lastActiveAt?: string | null;
 }
 
 export interface FriendshipDto {

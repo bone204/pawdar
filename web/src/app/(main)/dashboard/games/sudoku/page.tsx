@@ -4,22 +4,19 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Button } from "@/presentation/components/ui/Button";
-import {
-  useGetSudokuStagesQuery,
-  useGetSudokuLeaderboardQuery,
-} from "@/infrastructure/rtk/api/game.api";
-import { SudokuStageDto } from "@/application/dto/game.dto";
+import { useSudokuStages, useSudokuLeaderboard } from "@/application/hooks/useGames";
+import { SudokuStageEntity } from "@/domain/entities/game.entity";
 import SudokuGame from "./components/SudokuGame";
 
 export default function SudokuPage() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const [selectedStage, setSelectedStage] = useState<SudokuStageDto | null>(null);
+  const [selectedStage, setSelectedStage] = useState<SudokuStageEntity | null>(null);
 
   // RTK Query Hooks for selection view
-  const { data: stages = [], isLoading: isLoadingStages } = useGetSudokuStagesQuery();
-  const { data: leaderboard = [], isFetching: isLoadingLeaderboard } = useGetSudokuLeaderboardQuery();
+  const { data: stages = [], isLoading: isLoadingStages } = useSudokuStages();
+  const { data: leaderboard = [], isLoading: isLoadingLeaderboard } = useSudokuLeaderboard();
 
   // Helper formatting for time on leaderboard
   const formatTime = (secs: number) => {

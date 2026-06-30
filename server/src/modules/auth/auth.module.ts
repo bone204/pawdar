@@ -4,6 +4,8 @@ import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { AuthRepository } from './repositories/auth.repository';
 import { PrismaModule } from '../prisma/prisma.module';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from './guards/optional-jwt-auth.guard';
 import 'dotenv/config';
 
 @Module({
@@ -15,8 +17,8 @@ import 'dotenv/config';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthRepository],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService, AuthRepository, JwtAuthGuard, OptionalJwtAuthGuard],
+  exports: [AuthService, JwtModule, JwtAuthGuard, OptionalJwtAuthGuard],
 })
 export class AuthModule {}
 

@@ -3,15 +3,15 @@ import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Modal } from "@/presentation/components/ui/Modal";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { Button } from "@/presentation/components/ui/Button";
-import { useUpdateProfileMutation } from "@/infrastructure/rtk/api/user.api";
-import { UserProfileDto } from "@/application/dto/user.dto";
+import { useUsers } from "@/application/hooks/useUsers";
+import { UserEntity } from "@/domain/entities/user.entity";
 import { useDispatch } from "react-redux";
 import { updateUser } from "@/infrastructure/rtk/auth.slice";
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  profile: UserProfileDto;
+  profile: UserEntity;
   onSuccess: (msg: string) => void;
 }
 
@@ -23,7 +23,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+  const { updateProfile, isUpdating } = useUsers();
 
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -49,7 +49,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         phoneNumber: phoneNumber.trim() || undefined,
         address: address.trim() || undefined,
         bio: bio.trim() || undefined,
-      }).unwrap();
+      });
 
       dispatch(updateUser({
         fullName: updated.fullName,

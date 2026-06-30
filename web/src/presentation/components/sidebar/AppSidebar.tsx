@@ -77,7 +77,9 @@ export function AppSidebar({
                 {t("sidebar.main_menu")}
               </p>
               {navItems.map((item) => {
-                const isActive = item.route === APP_ROUTES.dashboard ? pathname === item.route : pathname.startsWith(item.route);
+                const isActive = (item.route === APP_ROUTES.dashboard || item.route === APP_ROUTES.profile)
+                  ? pathname === item.route 
+                  : pathname.startsWith(item.route);
                 return (
                   <Link
                     key={item.id}
@@ -162,7 +164,9 @@ export function AppSidebar({
           {/* Navigation Items */}
           <nav className="flex w-full flex-col gap-5">
             {navItems.map((item) => {
-              const isActive = item.route === APP_ROUTES.dashboard ? pathname === item.route : pathname.startsWith(item.route);
+              const isActive = (item.route === APP_ROUTES.dashboard || item.route === APP_ROUTES.profile)
+                ? pathname === item.route 
+                : pathname.startsWith(item.route);
               return (
                 <Link
                   key={item.id}

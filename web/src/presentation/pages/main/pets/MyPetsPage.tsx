@@ -5,14 +5,10 @@ import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Button } from "@/presentation/components/ui/Button";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { PlusIcon, EditIcon, TrashIcon } from "@/presentation/components/ui/Icons";
-import {
-  useGetPetsMeQuery,
-  useDeletePetMutation,
-  useGetPetByIdQuery,
-} from "@/infrastructure/rtk/api/pet.api";
-import { useGetBreedByIdQuery } from "@/infrastructure/rtk/api/breed.api";
+import { usePets, useMyPets, usePetDetail } from "@/application/hooks/usePets";
+import { useBreedDetail } from "@/application/hooks/useBreeds";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { PetResponseDto } from "@/application/dto/pet.dto";
+import { PetEntity } from "@/domain/entities/pet.entity";
 import { motion, AnimatePresence } from "framer-motion";
 import { PetFormModal } from "./modal/PetFormModal";
 
@@ -75,9 +71,7 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({ isOpen, petName, onConfirm,
 // ──────────────────────────────────────────────────────────────────────────────
 
 const BreedName: React.FC<{ breedId: string }> = ({ breedId }) => {
-  const { data, isLoading, isError } = useGetBreedByIdQuery(breedId, {
-    skip: !breedId,
-  });
+  const { data, isLoading, error: isError } = useBreedDetail(breedId, !breedId);
 
   if (isLoading) {
     return <p className="text-xs text-muted mt-0.5 font-medium animate-pulse">Đang tải...</p>;
@@ -95,9 +89,9 @@ const BreedName: React.FC<{ breedId: string }> = ({ breedId }) => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 interface PetCardProps {
-  pet: PetResponseDto;
-  onEdit: (pet: PetResponseDto) => void;
-  onDelete: (pet: PetResponseDto) => void;
+  pet: PetEntity;
+  onEdit: (pet: PetEntity) => void;
+  onDelete: (pet: PetEntity) => void;
   t: (key: string) => string;
 }
 
@@ -241,15 +235,13 @@ export const MyPetsPage: React.FC = () => {
 
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingPet, setEditingPet] = useState<PetResponseDto | null>(null);
-  const [deletingPet, setDeletingPet] = useState<PetResponseDto | null>(null);
+  const [editingPet, setEditingPet] = useState<PetEntity | null>(null);
+  const [deletingPet, setDeletingPet] = useState<PetEntity | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const [deletePet, { isLoading: isDeleting }] = useDeletePetMutation();
+  const { deletePet, isDeleting } = usePets();
 
-  const { data: queriedEditPet } = useGetPetByIdQuery(editPetId || "", {
-    skip: !editPetId,
-  });
+  const { data: queriedEditPet } = usePetDetail(editPetId || "", !editPetId);
 
   // Open modal if edit parameter is present in URL
   useEffect(() => {
@@ -268,7 +260,7 @@ export const MyPetsPage: React.FC = () => {
     return () => clearTimeout(h);
   }, [searchQuery]);
 
-  const { data, isFetching, isError } = useGetPetsMeQuery({
+  const { data, isFetching, error: isError } = useMyPets({
     petType,
     search: debouncedSearch || undefined,
     page,
@@ -304,7 +296,7 @@ export const MyPetsPage: React.FC = () => {
     setIsFormOpen(true);
   };
 
-  const _onEditPet = (pet: PetResponseDto) => {
+  const _onEditPet = (pet: PetEntity) => {
     setEditingPet(pet);
     setIsFormOpen(true);
   };
@@ -317,14 +309,14 @@ export const MyPetsPage: React.FC = () => {
     }
   };
 
-  const _onDeletePet = (pet: PetResponseDto) => {
+  const _onDeletePet = (pet: PetEntity) => {
     setDeletingPet(pet);
   };
 
   const _onConfirmDelete = async () => {
     if (!deletingPet) return;
     try {
-      await deletePet(deletingPet.id).unwrap();
+      await deletePet(deletingPet.id);
       setDeletingPet(null);
       _showToast(t("pets.deleteSuccess"));
     } catch (err) {

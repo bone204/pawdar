@@ -1,9 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { 
-  type PostResponseDto, 
-  useReactToPostMutation,
-} from "@/infrastructure/rtk/api/post.api";
+import { PostEntity } from "@/domain/entities/post.entity";
+import { usePosts } from "@/application/hooks/usePosts";
 import { motion, AnimatePresence } from "framer-motion";
 import { EditIcon, TrashIcon } from "@/presentation/components/ui/Icons";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
@@ -12,9 +10,9 @@ import { CommentsModal } from "./CommentsModal";
 import { useSelector } from "react-redux";
 
 interface PostCardProps {
-  post: PostResponseDto;
+  post: PostEntity;
   currentUserId?: string;
-  onEdit: (post: PostResponseDto) => void;
+  onEdit: (post: PostEntity) => void;
   onDelete: (postId: string) => void;
 }
 
@@ -181,7 +179,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
 
   // RTK Mutations
-  const [reactToPost] = useReactToPostMutation();
+  const { reactToPost } = usePosts();
 
   useEffect(() => {
     setMyReaction(post.myReaction || null);
@@ -274,7 +272,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     }
 
     try {
-      await reactToPost({ id: post.id, type }).unwrap();
+      await reactToPost(post.id, type);
     } catch {
       // Rollback on failure
       setMyReaction(oldMyReaction);
@@ -337,7 +335,6 @@ export const PostCard: React.FC<PostCardProps> = ({
           <div>
             <h4 className="font-extrabold text-sm text-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1.5 flex-wrap">
               {post.user.fullName}
-              <span className="w-1.5 h-1.5 rounded-full bg-success/80" title={t("posts.online")}></span>
               {post.status === "rejected" && (
                 <span className="text-[10px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
                   Bị từ chối 🚫
