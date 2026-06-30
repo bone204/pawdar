@@ -199,7 +199,9 @@
   },
   "sidebar": {
     "main_menu": "Main Menu",
-    "close_menu": "Collapse"
+    "close_menu": "Collapse",
+    "contacts": "Contacts",
+    "noFriendsYet": "You don't have any contacts yet."
   },
   "main": {
     "dashboard": "Home",

@@ -199,7 +199,9 @@
   },
   "sidebar": {
     "main_menu": "Menu chính",
-    "close_menu": "Thu gọn"
+    "close_menu": "Thu gọn",
+    "contacts": "Người liên hệ",
+    "noFriendsYet": "Bạn chưa có người liên hệ nào."
   },
   "main": {
     "dashboard": "Trang Chủ",

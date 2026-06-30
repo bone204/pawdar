@@ -230,6 +230,8 @@ export class FriendService {
           email: true,
           bio: true,
           address: true,
+          isOnline: true,
+          lastActiveAt: true,
         },
         skip,
         take: limit,

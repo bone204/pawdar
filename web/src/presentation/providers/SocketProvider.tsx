@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { userApi } from "@/infrastructure/rtk/api/user.api";
 import { notificationApi } from "@/infrastructure/rtk/api/notification.api";
-import { store, RootState } from "@/infrastructure/rtk/store";
+import { store, RootState, AppDispatch } from "@/infrastructure/rtk/store";
 import { env } from "@/shared/config/env";
 
 interface SocketContextType {
@@ -25,7 +25,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const user = useSelector(selectCurrentUser);
   const authState = useSelector((state: RootState) => state.auth);
   const token = authState?.accessToken;
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
 
@@ -86,6 +86,27 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (data.type === "FRIEND_DECLINE") {
         dispatch(userApi.util.invalidateTags(["SentFriendRequests", "ReceivedFriendRequests", "UserProfile"]));
       }
+    });
+
+    socketInstance.on("user_status_changed", (data: { userId: string; isOnline: boolean; lastActiveAt: string }) => {
+      // Optimistically update the getFriends cache for the specific user
+      dispatch(
+        userApi.util.updateQueryData("getFriends", { limit: 100 }, (draft) => {
+          const friend = draft.items.find((f) => f.id === data.userId);
+          if (friend) {
+            friend.isOnline = data.isOnline;
+            friend.lastActiveAt = data.lastActiveAt;
+          }
+        })
+      );
+      
+      // Also update the getUserProfile cache if we are viewing their profile
+      dispatch(
+        userApi.util.updateQueryData("getUserProfile", data.userId, (draft) => {
+          draft.isOnline = data.isOnline;
+          draft.lastActiveAt = data.lastActiveAt;
+        })
+      );
     });
 
     setSocket(socketInstance);
