@@ -169,6 +169,40 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       );
     });
 
+    socketInstance.on("edit_message", (message) => {
+      console.log("💬 Message edited:", message);
+      dispatch(
+        chatApi.util.updateQueryData(
+          "getMessages",
+          { conversationId: message.conversationId, params: { limit: 50 } },
+          (draft) => {
+            const idx = draft.data.findIndex((m) => m.id === message.id);
+            if (idx !== -1) {
+              draft.data[idx] = message;
+            }
+          }
+        )
+      );
+      dispatch(chatApi.util.invalidateTags(["Conversation"]));
+    });
+
+    socketInstance.on("revoke_message", (message) => {
+      console.log("💬 Message revoked:", message);
+      dispatch(
+        chatApi.util.updateQueryData(
+          "getMessages",
+          { conversationId: message.conversationId, params: { limit: 50 } },
+          (draft) => {
+            const idx = draft.data.findIndex((m) => m.id === message.id);
+            if (idx !== -1) {
+              draft.data[idx] = message;
+            }
+          }
+        )
+      );
+      dispatch(chatApi.util.invalidateTags(["Conversation"]));
+    });
+
     setSocket(socketInstance);
 
     return () => {

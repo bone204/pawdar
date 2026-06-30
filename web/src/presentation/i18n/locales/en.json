@@ -531,6 +531,9 @@
     }
   },
   "chat": {
-    "typeMessage": "Type a message..."
+    "typeMessage": "Type a message...",
+    "revokedMessage": "This message was revoked",
+    "editingMessage": "Editing message",
+    "edited": "(edited)"
   }
 }

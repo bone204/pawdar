@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
-import { useGetConversationsQuery, useGetMessagesQuery, useSendMessageMutation, useMarkAsReadMutation } from "@/infrastructure/rtk/api/chat.api";
+import { useGetConversationsQuery, useGetMessagesQuery, useSendMessageMutation, useMarkAsReadMutation, useEditMessageMutation, useRevokeMessageMutation } from "@/infrastructure/rtk/api/chat.api";
 import { useGetUserProfileQuery } from "@/infrastructure/rtk/api/user.api";
 import { formatDistanceToNow, format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useChatFocus } from "@/application/hooks/useChatFocus";
 import { useSocket } from "@/presentation/providers/SocketProvider";
 import { closeChat } from "@/infrastructure/rtk/slices/chat.slice";
+import { useUploadImageMutation } from "@/infrastructure/rtk/api/upload.api";
 
 export function ChatWidget({ conversationId }: { conversationId: string }) {
   const router = useRouter();
@@ -23,6 +24,7 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
   const [messageText, setMessageText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   
   // Track if this specific widget is active/focused
   const [isWidgetActive, setIsWidgetActive] = useState(false);
@@ -41,22 +43,75 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
 
   const [hasUnread, setHasUnread] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const isInitialMount = useRef(true);
   const prevMessagesLength = useRef(messages.length);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Track clicks inside/outside to determine widget focus
+  const [uploadImage, { isLoading: isUploading }] = useUploadImageMutation();
+  const [editMessage] = useEditMessageMutation();
+  const [revokeMessage] = useRevokeMessageMutation();
+
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const editingMessage = messages.find(m => m.id === editingMessageId);
+
+  // Auto-resize textarea and control scrollbar visibility
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = `${Math.min(scrollHeight, 120)}px`;
+      if (scrollHeight > 120) {
+        textareaRef.current.style.overflowY = "auto";
+      } else {
+        textareaRef.current.style.overflowY = "hidden";
+      }
+    }
+  }, [messageText]);
+
+  // Clean up object URL
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
+
+  // Track clicks inside/outside to determine widget focus and close message options
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (widgetRef.current?.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (headerRef.current?.contains(target)) {
+        // Clicking header does not count as focus
+        return;
+      }
+
+      if (widgetRef.current?.contains(target)) {
         setIsWidgetActive(true);
       } else {
         setIsWidgetActive(false);
+      }
+
+      // Close message options menu when clicking outside it
+      if (!(e.target as HTMLElement).closest(".group\\/menu")) {
+        setActiveMenuId(null);
       }
     };
     
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  const focusInput = () => {
+    textareaRef.current?.focus();
+  };
+
+
 
   // Scroll to bottom when new messages arrive or when un-minimized
   useEffect(() => {
@@ -68,6 +123,7 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
     }
   }, [messages.length, isMinimized]);
 
+  // Handle unread status logic
   // Handle unread status logic
   useEffect(() => {
     if (messages.length === 0) return;
@@ -83,38 +139,143 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
     }
 
     if (messages.length > prevMessagesLength.current) {
-      if (lastMsg.senderId !== currentUser?.id && (!isWidgetActive || isMinimized)) {
-        setHasUnread(true);
+      if (lastMsg.senderId !== currentUser?.id) {
+        setIsMinimized(false);
+        if (!isWidgetActive) {
+          setHasUnread(true);
+        }
       }
     }
     
     prevMessagesLength.current = messages.length;
-  }, [messages, isWidgetActive, isMinimized, currentUser]);
+  }, [messages, isWidgetActive, currentUser]);
 
+  // Mark messages as read when the user actually focuses/clicks inside the widget
   useEffect(() => {
     if (isWidgetActive) {
       setHasUnread(false);
-      // Mark as read when focused
       markAsRead(conversationId).catch(console.error);
     }
   }, [isWidgetActive, conversationId, markAsRead]);
 
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!messageText.trim() || !currentUser || isSending) return;
+    if (!messageText.trim() && !selectedImage) return;
+    if (!currentUser || isSending || isUploading) return;
 
     try {
-      await sendMessage({
-        conversationId,
-        content: messageText.trim(),
-        type: "TEXT"
-      }).unwrap();
+      if (editingMessageId) {
+        await editMessage({
+          messageId: editingMessageId,
+          body: { content: messageText.trim() }
+        }).unwrap();
+        
+        setEditingMessageId(null);
+        setMessageText("");
+        setTimeout(focusInput, 50);
+        return;
+      }
 
-      setMessageText("");
+      // 1. If there's an image, upload and send it first
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append("file", selectedImage);
+        const uploadRes = await uploadImage(formData).unwrap();
+        
+        await sendMessage({
+          conversationId,
+          content: uploadRes.url,
+          type: "IMAGE"
+        }).unwrap();
+        
+        handleRemoveImage();
+      }
+
+      // 2. If there's text, send the text message
+      if (messageText.trim()) {
+        await sendMessage({
+          conversationId,
+          content: messageText.trim(),
+          type: "TEXT"
+        }).unwrap();
+        setMessageText("");
+      }
+
+      setTimeout(focusInput, 50);
     } catch (error) {
       console.error("Failed to send message", error);
     }
   };
+
+  const handleImageUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    if (!file.type.startsWith("image/")) return;
+
+    setSelectedImage(file);
+    const url = URL.createObjectURL(file);
+    setImagePreviewUrl(url);
+    setTimeout(focusInput, 50);
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setTimeout(focusInput, 50);
+  };
+
+  const handleRevoke = async (messageId: string) => {
+    try {
+      await revokeMessage(messageId).unwrap();
+    } catch (error) {
+      console.error("Failed to revoke message", error);
+    }
+  };
+
+  const handleEmojiClick = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setMessageText(prev => prev + emoji);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const before = text.substring(0, start);
+    const after = text.substring(end, text.length);
+
+    setMessageText(before + emoji + after);
+    setShowEmojiPicker(false);
+
+    // Set cursor position right after the inserted emoji
+    const newCursorPos = start + emoji.length;
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 50);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const commonEmojis = ["👍", "❤️", "😊", "😂", "😮", "😢", "🐾", "🐶", "🐱", "🎉", "🔥", "✨"];
 
   const fInitials = otherParticipant?.fullName
     ? otherParticipant.fullName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
@@ -142,12 +303,13 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
     >
       {/* Header */}
       <div 
-        className={`p-2.5 border-b border-border flex items-center justify-between shrink-0 transition-colors cursor-pointer ${
+        ref={headerRef}
+        className={`p-2.5 border-b border-border flex items-center justify-between shrink-0 transition-colors cursor-pointer rounded-t-[10px] ${
           hasUnread ? "bg-primary text-primary-foreground" : "bg-secondary/30"
         }`}
         onClick={() => {
-          setHasUnread(false);
-          setIsMinimized(!isMinimized);
+          const nextMinimized = !isMinimized;
+          setIsMinimized(nextMinimized);
         }}
       >
         <div 
@@ -157,7 +319,6 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
           onClick={(e) => {
             e.stopPropagation();
             if (isMinimized) {
-              setHasUnread(false);
               setIsMinimized(false);
             } else {
               router.push(`/dashboard/profile/${otherParticipant?.id}`);
@@ -309,12 +470,69 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
                       </div>
                     )}
                     
-                    <div className={`max-w-[80%] px-3 py-2 text-[13px] transition-all duration-300 ${borderRadiusClass} ${
-                      isMine 
-                        ? "bg-primary text-primary-foreground shadow-sm" 
-                        : "bg-secondary text-foreground border border-border/50"
+                    {isMine && !msg.isDeleted && (
+                      <div className="relative group/menu flex items-center shrink-0">
+                        <button
+                          type="button"
+                          className="opacity-0 group-hover:opacity-100 transition-all w-5 h-5 rounded-full hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId(activeMenuId === msg.id ? null : msg.id);
+                          }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                        </button>
+                        
+                        {activeMenuId === msg.id && (
+                          <div className="absolute bottom-6 right-0 bg-card border border-border shadow-lg rounded-xl py-1 w-20 z-50 text-[11px] animate-in fade-in slide-in-from-bottom-1 duration-150">
+                            {msg.type !== "IMAGE" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingMessageId(msg.id);
+                                  setMessageText(msg.content);
+                                  setActiveMenuId(null);
+                                }}
+                                className="w-full text-left px-2.5 py-1 hover:bg-secondary transition-colors font-medium flex items-center gap-1.5 cursor-pointer"
+                              >
+                                Sửa
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleRevoke(msg.id);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-2.5 py-1 hover:bg-secondary text-destructive transition-colors font-medium flex items-center gap-1.5 cursor-pointer"
+                            >
+                              Thu hồi
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className={`max-w-[80%] transition-all duration-300 ${borderRadiusClass} ${
+                      msg.isDeleted
+                        ? "bg-secondary/40 text-muted-foreground/80 italic border border-border/50 px-4 py-2.5 text-sm"
+                        : msg.type === "IMAGE"
+                          ? ""
+                          : isMine
+                            ? "bg-primary text-primary-foreground shadow-sm px-4 py-2.5 text-sm"
+                            : "bg-secondary text-foreground border border-border/50 px-4 py-2.5 text-sm"
                     }`}>
-                      <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                      {msg.isDeleted ? (
+                        <span>{t("chat.revokedMessage") || "Tin nhắn đã bị thu hồi"}</span>
+                      ) : msg.type === "IMAGE" ? (
+                        <div className="overflow-hidden rounded-2xl border border-border/50 max-w-[200px] bg-secondary/20 shadow-sm">
+                          <img src={msg.content} alt="sent image" className="w-full h-auto object-cover max-h-[250px] hover:opacity-90 transition-opacity" />
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap break-words leading-relaxed">
+                          {msg.content}
+                        </p>
+                      )}
                     </div>
 
                     {!isMine && (
@@ -324,16 +542,32 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
                     )}
                   </div>
 
-                  {/* Read receipt avatar: always visible on last read message */}
-                  {isMine && showReadReceipt && (
-                    <div className="flex justify-end pr-1 mt-0.5 mb-0.5">
-                      <div className="w-4 h-4 rounded-full overflow-hidden border border-background ring-1 ring-primary/20 flex items-center justify-center bg-primary/10 text-primary text-[8px] font-bold shrink-0">
-                        {fAvatar ? (
-                          <img src={fAvatar} alt="seen" className="w-full h-full object-cover" />
-                        ) : (
-                          <span>{fInitials}</span>
-                        )}
-                      </div>
+                  {/* Status row for isMine: read receipt avatar and/or edit indicator */}
+                  {isMine && (msg.isEdited || showReadReceipt) && (
+                    <div className="flex justify-end items-center gap-1.5 pr-1 mt-0.5 mb-0.5">
+                      {msg.isEdited && !msg.isDeleted && (
+                        <span className="text-[9px] text-muted-foreground/50 select-none font-normal">
+                          {t("chat.edited") || "(đã chỉnh sửa)"}
+                        </span>
+                      )}
+                      {showReadReceipt && (
+                        <div className="w-4 h-4 rounded-full overflow-hidden border border-background ring-1 ring-primary/20 flex items-center justify-center bg-primary/10 text-primary text-[8px] font-bold shrink-0">
+                          {fAvatar ? (
+                            <img src={fAvatar} alt="seen" className="w-full h-full object-cover" />
+                          ) : (
+                            <span>{fInitials}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Status row for !isMine: edit indicator */}
+                  {!isMine && msg.isEdited && !msg.isDeleted && (
+                    <div className="flex justify-start pl-10 mt-0.5 mb-0.5">
+                      <span className="text-[9px] text-muted-foreground/50 select-none font-normal">
+                        {t("chat.edited") || "(đã chỉnh sửa)"}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -345,26 +579,114 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
       </div>
 
       {/* Input */}
-      <div className={`p-2 border-t border-border shrink-0 bg-card ${isMinimized ? "hidden" : "block"}`}>
-        <form onSubmit={handleSend} className="flex items-center gap-1.5 relative">
+      <div className={`p-2 border-t border-border shrink-0 bg-card ${isMinimized ? "hidden" : "block"} relative`}>
+        {editingMessageId && (
+          <div className="mb-2 px-2.5 py-1.5 bg-secondary/50 rounded-xl flex flex-col gap-1 border border-border/50 text-xs text-muted-foreground animate-in fade-in duration-150">
+            <div className="flex items-center justify-between w-full">
+              <span className="font-semibold text-foreground/80">{t("chat.editingMessage") || "Đang chỉnh sửa tin nhắn"}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingMessageId(null);
+                  setMessageText("");
+                  setTimeout(focusInput, 50);
+                }}
+                className="w-5 h-5 rounded-full bg-border/40 hover:bg-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            {editingMessage && (
+              <p className="text-[11px] italic truncate max-w-[280px] text-muted-foreground/80">
+                "{editingMessage.content}"
+              </p>
+            )}
+          </div>
+        )}
+        {imagePreviewUrl && (
+          <div className="mb-2 p-1 bg-secondary/30 rounded-lg flex items-center justify-between border border-border/50 animate-in fade-in slide-in-from-bottom-1 duration-150">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded overflow-hidden border border-border bg-card">
+                <img src={imagePreviewUrl} alt="preview" className="w-full h-full object-cover" />
+              </div>
+              <span className="text-xs text-muted-foreground truncate max-w-[180px]">{selectedImage?.name}</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="w-5 h-5 rounded-full bg-border/40 hover:bg-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        )}
+        {showEmojiPicker && (
+          <div className="absolute bottom-14 right-2 bg-card border border-border rounded-xl shadow-xl p-2.5 flex gap-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+            {commonEmojis.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => handleEmojiClick(emoji)}
+                className="hover:scale-125 transition-transform p-1 text-base cursor-pointer"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+        <form onSubmit={handleSend} className="flex items-end relative w-full gap-1.5">
           <input
-            type="text"
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            placeholder={t("chat.typeMessage") || "Nhập tin nhắn..."}
-            className="flex-1 bg-secondary/50 text-foreground text-sm rounded-full px-3.5 py-2 border border-border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all pr-9"
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden"
           />
-          <button
-            type="submit"
-            disabled={!messageText.trim() || isSending}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all absolute right-1 ${
-              messageText.trim() && !isSending
-                ? "text-primary hover:scale-105 active:scale-95 cursor-pointer"
-                : "text-muted cursor-not-allowed"
-            }`}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
+          <div className="relative flex-1">
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setIsWidgetActive(true)}
+              placeholder={t("chat.typeMessage") || "Nhập tin nhắn..."}
+              className="w-full bg-secondary/50 text-foreground text-sm rounded-2xl pl-3.5 pr-[84px] py-2 border border-border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none max-h-[120px] min-h-[36px] block leading-normal"
+            />
+            <div className="absolute right-1 bottom-1 flex items-center gap-0.5">
+              <button
+                type="button"
+                onClick={handleImageUploadClick}
+                disabled={isSending || isUploading}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-primary transition-colors cursor-pointer shrink-0"
+              >
+                {isUploading ? (
+                  <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                disabled={isSending}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-primary transition-colors cursor-pointer shrink-0"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+              </button>
+              <button
+                type="submit"
+                disabled={(!messageText.trim() && !selectedImage) || isSending || isUploading}
+                className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                  (messageText.trim() || selectedImage) && !isSending && !isUploading
+                    ? "text-primary hover:scale-105 active:scale-95 cursor-pointer"
+                    : "text-muted cursor-not-allowed"
+                }`}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
         </form>
       </div>
     </div>
