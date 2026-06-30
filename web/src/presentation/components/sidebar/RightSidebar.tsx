@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
@@ -10,6 +10,7 @@ import { openChat } from "@/infrastructure/rtk/slices/chat.slice";
 import { APP_ROUTES } from "@/shared/constants/routes";
 import { FriendDto } from "@/application/dto/user.dto";
 import { motion, AnimatePresence } from "framer-motion";
+import { TextField } from "@/presentation/components/ui/TextField";
 
 function formatOfflineTime(lastActiveAt: string | null | undefined, t: any, locale: string): string {
   if (!lastActiveAt) return "";
@@ -38,6 +39,10 @@ export function RightSidebar() {
   const { t, locale } = useTranslation();
   const { data, isLoading } = useFriends({ limit: 100 });
   const [createConversation] = useCreateConversationMutation();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleFriendClick = async (friendId: string) => {
     try {
@@ -70,23 +75,74 @@ export function RightSidebar() {
     });
   }, [data?.items]);
 
+  const filteredFriends = useMemo(() => {
+    if (!sortedFriends) return [];
+    if (!searchQuery.trim()) return sortedFriends;
+    return sortedFriends.filter((f) =>
+      f.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [sortedFriends, searchQuery]);
+
   return (
     <aside className="flex flex-col w-full h-full bg-background shrink-0">
-      <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex flex-col h-full overflow-hidden relative">
         
         {/* Header */}
-        <div className="p-4 border-b border-border/50 shrink-0 flex items-center justify-between">
-          <h3 className="font-extrabold text-sm text-muted-foreground uppercase tracking-wider">
-            {t("sidebar.contacts") || "Người liên hệ"}
-          </h3>
-          <button 
-            className="w-8 h-8 rounded-full hover:bg-secondary/60 flex items-center justify-center text-muted-foreground transition-colors cursor-pointer"
-            aria-label="Search contacts"
+        <div className="p-4 border-b border-border/50 shrink-0 flex items-center justify-between h-[60px] relative overflow-hidden">
+          {/* Title Text (fades and moves left) */}
+          <div className={`transition-all duration-300 flex items-center ${isSearchActive ? "opacity-0 -translate-x-10 pointer-events-none" : "opacity-100 translate-x-0"}`}>
+            <h3 className="font-extrabold text-sm text-muted-foreground uppercase tracking-wider">
+              {t("sidebar.contacts") || "Người liên hệ"}
+            </h3>
+          </div>
+
+          {/* Expanding Search input bar (fades and moves in from right) */}
+          <div 
+            className={`absolute left-4 right-4 flex items-center transition-all duration-300 ${
+              isSearchActive 
+                ? "opacity-100 translate-x-0 pointer-events-auto" 
+                : "opacity-0 translate-x-10 pointer-events-none"
+            }`}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-            </svg>
-          </button>
+            <TextField
+              ref={searchInputRef}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("common.searchUsersPlaceholder") || "Tìm kiếm liên hệ..."}
+              className="w-full text-xs"
+              leftIcon={
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-muted"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              }
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSearchActive(false);
+                    setSearchQuery("");
+                  }}
+                  className="text-muted hover:text-foreground cursor-pointer flex items-center justify-center w-5 h-5 rounded-full hover:bg-border/50"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              }
+            />
+          </div>
+
+          {/* Search Trigger Button */}
+          {!isSearchActive && (
+            <button 
+              onClick={() => {
+                setIsSearchActive(true);
+                setTimeout(() => searchInputRef.current?.focus(), 150);
+              }}
+              className="w-8 h-8 rounded-full hover:bg-secondary/60 flex items-center justify-center text-muted-foreground transition-colors cursor-pointer shrink-0"
+              aria-label="Search contacts"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Friends List */}
@@ -100,14 +156,14 @@ export function RightSidebar() {
                 </div>
               ))}
             </div>
-          ) : sortedFriends.length === 0 ? (
+          ) : filteredFriends.length === 0 ? (
             <div className="p-6 text-center text-xs text-muted font-medium">
               {t("sidebar.noFriendsYet") || "Bạn chưa có người liên hệ nào."}
             </div>
           ) : (
             <div className="flex flex-col gap-0.5">
               <AnimatePresence initial={false}>
-                {sortedFriends.map((friend: FriendDto) => {
+                {filteredFriends.map((friend: FriendDto) => {
                   const fInitials = friend.fullName
                     .split(" ")
                     .map((n) => n[0])
@@ -165,6 +221,8 @@ export function RightSidebar() {
             </div>
           )}
         </div>
+
+
         
       </div>
     </aside>
