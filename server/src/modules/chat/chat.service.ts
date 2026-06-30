@@ -212,6 +212,16 @@ export class ChatService {
   }
 
   async markAsRead(conversationId: string, userId: string) {
+    // Find unread messages (sent by someone else) before marking them
+    const unreadMessages = await this.prisma.message.findMany({
+      where: {
+        conversationId,
+        senderId: { not: userId },
+        isRead: false,
+      },
+      select: { senderId: true },
+    });
+
     const result = await this.prisma.message.updateMany({
       where: {
         conversationId,
@@ -222,6 +232,17 @@ export class ChatService {
         isRead: true,
       },
     });
+
+    // Emit realtime event to original senders so they can update their UI
+    if (result.count > 0) {
+      const senderIds = [...new Set(unreadMessages.map(m => m.senderId))];
+      senderIds.forEach(senderId => {
+        this.socketGateway.sendToUser(senderId, 'messages_read', {
+          conversationId,
+          readByUserId: userId,
+        });
+      });
+    }
 
     return { updatedCount: result.count };
   }

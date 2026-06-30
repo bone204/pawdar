@@ -150,6 +150,25 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     });
 
+    socketInstance.on("messages_read", (data: { conversationId: string; readByUserId: string }) => {
+      console.log("✅ Messages read by:", data.readByUserId, "in conversation:", data.conversationId);
+
+      // Update isRead to true for all my messages in this conversation in cache
+      dispatch(
+        chatApi.util.updateQueryData(
+          "getMessages",
+          { conversationId: data.conversationId, params: { limit: 50 } },
+          (draft) => {
+            draft.data.forEach((msg) => {
+              if (msg.senderId !== data.readByUserId) {
+                msg.isRead = true;
+              }
+            });
+          }
+        )
+      );
+    });
+
     setSocket(socketInstance);
 
     return () => {

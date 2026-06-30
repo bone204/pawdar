@@ -14,7 +14,9 @@
     "searchUsersPlaceholder": "Tìm kiếm người dùng...",
     "noUsersFound": "Không tìm thấy người dùng",
     "recentSearches": "Tìm kiếm gần đây",
-    "clearAll": "Xóa tất cả"
+    "clearAll": "Xóa tất cả",
+    "justNow": "Vừa xong",
+    "active": "Hoạt động"
   },
   "landing": {
     "title": "Chào mừng đến với Pawdar",

@@ -6,6 +6,7 @@ export interface MessageEntity {
   senderId: string;
   content: string;
   type: 'TEXT' | 'IMAGE' | 'SYSTEM';
+  isRead: boolean;
   isEdited: boolean;
   isDeleted: boolean;
   createdAt: string;

@@ -14,7 +14,9 @@
     "searchUsersPlaceholder": "Search users...",
     "noUsersFound": "No users found",
     "recentSearches": "Recent searches",
-    "clearAll": "Clear all"
+    "clearAll": "Clear all",
+    "justNow": "Just now",
+    "active": "Active"
   },
   "landing": {
     "title": "Welcome to Pawdar",

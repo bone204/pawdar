@@ -7,7 +7,7 @@ import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { useGetConversationsQuery, useGetMessagesQuery, useSendMessageMutation, useMarkAsReadMutation } from "@/infrastructure/rtk/api/chat.api";
 import { useGetUserProfileQuery } from "@/infrastructure/rtk/api/user.api";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useChatFocus } from "@/application/hooks/useChatFocus";
 import { useSocket } from "@/presentation/providers/SocketProvider";
@@ -122,10 +122,10 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
   const fAvatar = otherParticipant?.avatarUrl && otherParticipant.avatarUrl.startsWith("http") ? otherParticipant.avatarUrl : null;
 
   const getStatusText = () => {
-    if (userProfile?.isOnline) return "Đang hoạt động";
+    if (userProfile?.isOnline) return t("common.active") || "Đang hoạt động";
     if (userProfile?.lastActiveAt) {
       try {
-        return `Hoạt động ${formatDistanceToNow(new Date(userProfile.lastActiveAt), { addSuffix: true, locale: vi })}`;
+        return `${t("common.active") || "Hoạt động"} ${formatDistanceToNow(new Date(userProfile.lastActiveAt), { addSuffix: true, locale: vi })}`;
       } catch (e) {
         return "";
       }
@@ -218,34 +218,126 @@ export function ChatWidget({ conversationId }: { conversationId: string }) {
       </div>
 
       {/* Messages */}
-      <div className={`flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin bg-background/50 flex-col ${isMinimized ? "hidden" : "flex"}`}>
+      <div className={`flex-1 overflow-y-auto p-3 scrollbar-thin bg-background/50 flex-col ${isMinimized ? "hidden" : "flex"}`}>
         {isLoadingMessages ? (
-          <div className="flex items-center justify-center h-full text-muted">
-             <span className="animate-pulse">Loading...</span>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-end gap-2 w-full">
+              <div className="w-6 h-6 rounded-full bg-border/40 animate-pulse shrink-0"></div>
+              <div className="h-10 w-[60%] bg-border/40 animate-pulse rounded-2xl rounded-bl-[4px]"></div>
+            </div>
+            <div className="flex justify-end w-full">
+              <div className="h-14 w-[50%] bg-primary/20 animate-pulse rounded-2xl rounded-br-[4px]"></div>
+            </div>
+            <div className="flex items-end gap-2 w-full mt-2">
+              <div className="w-6 h-6 rounded-full bg-border/40 animate-pulse shrink-0"></div>
+              <div className="h-8 w-[40%] bg-border/40 animate-pulse rounded-2xl rounded-bl-[4px]"></div>
+            </div>
           </div>
         ) : (
-          messages.slice().map((msg, idx) => {
+          messages.slice().map((msg, idx, arr) => {
             const isMine = msg.senderId === currentUser?.id;
+            const prevMsg = idx > 0 ? arr[idx - 1] : null;
+            const nextMsg = idx < arr.length - 1 ? arr[idx + 1] : null;
+
+            const showTimeDivider = !prevMsg || (new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() > 3600000);
+
+            const isConsecutiveWithPrev = prevMsg && prevMsg.senderId === msg.senderId && !showTimeDivider;
+            const isConsecutiveWithNext = nextMsg && nextMsg.senderId === msg.senderId && !(new Date(nextMsg.createdAt).getTime() - new Date(msg.createdAt).getTime() > 3600000);
+
+            const showAvatar = !isMine && !isConsecutiveWithNext;
+            
+            const marginTopClass = idx === 0 ? "mt-0" : (isConsecutiveWithPrev ? "mt-0.5" : "mt-3");
+
+            // Compute lastReadMessageId: last message I sent that the other person has read
+            const myReadMessages = arr.filter(m => m.senderId === currentUser?.id && m.isRead);
+            const lastReadMessageId = myReadMessages.length > 0 ? myReadMessages[myReadMessages.length - 1].id : null;
+            const showReadReceipt = isMine && msg.id === lastReadMessageId;
+
+            let borderRadiusClass = "rounded-2xl";
+            if (isMine) {
+              if (isConsecutiveWithPrev && isConsecutiveWithNext) {
+                borderRadiusClass = "rounded-2xl rounded-r-[4px]"; // Middle
+              } else if (isConsecutiveWithPrev && !isConsecutiveWithNext) {
+                borderRadiusClass = "rounded-2xl rounded-tr-[4px]"; // Last
+              } else if (!isConsecutiveWithPrev && isConsecutiveWithNext) {
+                borderRadiusClass = "rounded-2xl rounded-br-[4px]"; // First
+              } else {
+                borderRadiusClass = "rounded-2xl"; // Single
+              }
+            } else {
+              if (isConsecutiveWithPrev && isConsecutiveWithNext) {
+                borderRadiusClass = "rounded-2xl rounded-l-[4px]"; // Middle
+              } else if (isConsecutiveWithPrev && !isConsecutiveWithNext) {
+                borderRadiusClass = "rounded-2xl rounded-tl-[4px]"; // Last
+              } else if (!isConsecutiveWithPrev && isConsecutiveWithNext) {
+                borderRadiusClass = "rounded-2xl rounded-bl-[4px]"; // First
+              } else {
+                borderRadiusClass = "rounded-2xl"; // Single
+              }
+            }
             
             return (
-              <div key={msg.id} className={`flex w-full gap-2 ${isMine ? "justify-end" : "justify-start"} ${idx === 0 ? "mb-1" : ""}`}>
-                {!isMine && (
-                  <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 mt-auto flex items-center justify-center bg-primary/10 text-primary text-[10px] font-bold border border-primary/20">
-                    {fAvatar ? (
-                      <img src={fAvatar} alt="avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span>{fInitials}</span>
-                    )}
+              <React.Fragment key={msg.id}>
+                {showTimeDivider && (
+                  <div className="flex justify-center w-full my-4">
+                    <span className="text-[10px] text-muted-foreground/60 font-medium">
+                      {format(new Date(msg.createdAt), "HH:mm, dd/MM/yyyy")}
+                    </span>
                   </div>
                 )}
-                <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-[13px] ${
-                  isMine 
-                    ? "bg-primary text-primary-foreground rounded-br-sm shadow-sm" 
-                    : "bg-secondary text-foreground rounded-bl-sm border border-border/50"
-                }`}>
-                  <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                <div className={`flex flex-col w-full ${marginTopClass}`}>
+                  <div 
+                    className={`flex w-full gap-2 ${isMine ? "justify-end" : "justify-start"} items-center group`}
+                  >
+                    {isMine && (
+                      <div className="transition-all duration-200 overflow-hidden whitespace-nowrap flex items-center max-w-0 opacity-0 group-hover:max-w-[50px] group-hover:opacity-100">
+                        <span className="text-[10px] text-muted-foreground font-medium pr-1">{format(new Date(msg.createdAt), "HH:mm")}</span>
+                      </div>
+                    )}
+                    
+                    {!isMine && (
+                      <div className="w-6 shrink-0 flex items-end self-end">
+                        {showAvatar ? (
+                          <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-primary/10 text-primary text-[10px] font-bold border border-primary/20">
+                            {fAvatar ? (
+                              <img src={fAvatar} alt="avatar" className="w-full h-full object-cover" />
+                            ) : (
+                              <span>{fInitials}</span>
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                    
+                    <div className={`max-w-[80%] px-3 py-2 text-[13px] transition-all duration-300 ${borderRadiusClass} ${
+                      isMine 
+                        ? "bg-primary text-primary-foreground shadow-sm" 
+                        : "bg-secondary text-foreground border border-border/50"
+                    }`}>
+                      <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                    </div>
+
+                    {!isMine && (
+                      <div className="transition-all duration-200 overflow-hidden whitespace-nowrap flex items-center max-w-0 opacity-0 group-hover:max-w-[50px] group-hover:opacity-100">
+                        <span className="text-[10px] text-muted-foreground font-medium pl-1">{format(new Date(msg.createdAt), "HH:mm")}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Read receipt avatar: always visible on last read message */}
+                  {isMine && showReadReceipt && (
+                    <div className="flex justify-end pr-1 mt-0.5 mb-0.5">
+                      <div className="w-4 h-4 rounded-full overflow-hidden border border-background ring-1 ring-primary/20 flex items-center justify-center bg-primary/10 text-primary text-[8px] font-bold shrink-0">
+                        {fAvatar ? (
+                          <img src={fAvatar} alt="seen" className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{fInitials}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              </React.Fragment>
             );
           })
         )}
