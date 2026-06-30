@@ -22,6 +22,8 @@ export class UserService {
         coverUrl: true,
         createdAt: true,
         isEmailVerified: true,
+        isOnline: true,
+        lastActiveAt: true,
       },
     });
 
@@ -171,9 +173,22 @@ export class UserService {
         avatarUrl: true,
         bio: true,
         address: true,
+        isOnline: true,
+        lastActiveAt: true,
       },
       take: 20,
       orderBy: { fullName: 'asc' },
     });
+  }
+
+  async getUserStatus(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isOnline: true, lastActiveAt: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 }

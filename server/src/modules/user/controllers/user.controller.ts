@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
+  import { Controller, Get, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserService } from '../services/user.service';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
@@ -39,6 +39,14 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async getUserProfile(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
     const data = await this.userService.getProfile(id, user.id);
+    return { success: true, code: ResponseCode.GET_PROFILE_SUCCESSFUL, data };
+  }
+
+  @Get('profile/:id/status')
+  @ApiOperation({ summary: 'Get user online status by ID' })
+  @ApiResponse({ status: 200, description: 'User status retrieved successfully' })
+  async getUserStatus(@Param('id') id: string) {
+    const data = await this.userService.getUserStatus(id);
     return { success: true, code: ResponseCode.GET_PROFILE_SUCCESSFUL, data };
   }
 
