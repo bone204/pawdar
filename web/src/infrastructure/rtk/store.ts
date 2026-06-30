@@ -9,6 +9,7 @@ import { postApi } from "@/infrastructure/rtk/api/post.api";
 import { userApi } from "@/infrastructure/rtk/api/user.api";
 import { notificationApi } from "@/infrastructure/rtk/api/notification.api";
 import { gameApi } from "@/infrastructure/rtk/api/game.api";
+import { chatApi } from "@/infrastructure/rtk/api/chat.api";
 import authReducer from "@/infrastructure/rtk/auth.slice";
 
 export const store = configureStore({
@@ -21,6 +22,7 @@ export const store = configureStore({
     [userApi.reducerPath]: userApi.reducer,
     [notificationApi.reducerPath]: notificationApi.reducer,
     [gameApi.reducerPath]: gameApi.reducer,
+    [chatApi.reducerPath]: chatApi.reducer,
     auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -32,7 +34,8 @@ export const store = configureStore({
       postApi.middleware,
       userApi.middleware,
       notificationApi.middleware,
-      gameApi.middleware
+      gameApi.middleware,
+      chatApi.middleware
     ),
 });
 

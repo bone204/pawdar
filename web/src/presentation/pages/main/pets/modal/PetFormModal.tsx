@@ -5,13 +5,10 @@ import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { Button } from "@/presentation/components/ui/Button";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { Modal } from "@/presentation/components/ui/Modal";
-import {
-  useCreatePetMutation,
-  useUpdatePetMutation,
-} from "@/infrastructure/rtk/api/pet.api";
-import { useUploadImageMutation } from "@/infrastructure/rtk/api/upload.api";
-import { useGetBreedsQuery } from "@/infrastructure/rtk/api/breed.api";
-import type { PetResponseDto, CreatePetRequestDto } from "@/application/dto/pet.dto";
+import { usePets } from "@/application/hooks/usePets";
+import { useUpload } from "@/application/hooks/useUpload";
+import { useBreeds } from "@/application/hooks/useBreeds";
+import { PetEntity } from "@/domain/entities/pet.entity";
 
 interface PetFormValues {
   name: string;
@@ -37,23 +34,22 @@ const EMPTY_FORM: PetFormValues = {
 
 export interface PetFormModalProps {
   isOpen: boolean;
-  editingPet: PetResponseDto | null;
+  editingPet: PetEntity | null;
   onClose: () => void;
   onSuccess: (msg: string) => void;
 }
 
 export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, editingPet, onClose, onSuccess }) => {
   const { t } = useTranslation();
-  const [createPet, { isLoading: isCreating }] = useCreatePetMutation();
-  const [updatePet, { isLoading: isUpdating }] = useUpdatePetMutation();
-  const [uploadImage] = useUploadImageMutation();
+  const { createPet, updatePet, isCreating, isUpdating } = usePets();
+  const { uploadImage } = useUpload();
   const [form, setForm] = useState<PetFormValues>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof PetFormValues, string>>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const { data: breedsData } = useGetBreedsQuery({
+  const { data: breedsData } = useBreeds({
     petType: form.petType,
     limit: 100,
   });
@@ -103,10 +99,7 @@ export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, editingPet, 
   };
 
   const _uploadToCloudinary = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await uploadImage(formData).unwrap();
-    return res.url;
+    return await uploadImage(file);
   };
 
   const _onSubmit = async () => {
@@ -118,7 +111,7 @@ export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, editingPet, 
         finalAvatarUrl = await _uploadToCloudinary(selectedFile);
       }
 
-      const payload: CreatePetRequestDto = {
+      const payload: Partial<PetEntity> = {
         name: form.name.trim(),
         petType: form.petType,
         breedId: form.breedId.trim() || undefined,
@@ -130,10 +123,10 @@ export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, editingPet, 
       };
 
       if (editingPet) {
-        await updatePet({ id: editingPet.id, body: payload }).unwrap();
+        await updatePet(editingPet.id, payload);
         onSuccess(t("pets.updateSuccess"));
       } else {
-        await createPet(payload).unwrap();
+        await createPet(payload);
         onSuccess(t("pets.createSuccess"));
       }
       onClose();

@@ -8,7 +8,7 @@ import { Header } from "@/presentation/components/Header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routes";
-import { useLoginMutation } from "@/infrastructure/rtk/api/auth.api";
+import { useAuth } from "@/application/hooks/useAuth";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthenticatedSession, selectIsAuthenticated } from "@/infrastructure/rtk/auth.slice";
 import dynamic from "next/dynamic";
@@ -24,7 +24,7 @@ export const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const dispatch = useDispatch();
-  const [login] = useLoginMutation();
+  const { login, isLoggingIn: isLoading, loginError: error } = useAuth();
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
   useEffect(() => {
@@ -35,7 +35,6 @@ export const LoginPage: React.FC = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
 
   const _validateForm = () => {
@@ -60,11 +59,10 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     if (!_validateForm()) return;
 
-    setIsLoading(true);
     setErrors({});
 
     try {
-      const response = await login({ email, password }).unwrap();
+      const response = await login({ email, password });
 
       dispatch(
         setAuthenticatedSession({
@@ -81,8 +79,6 @@ export const LoginPage: React.FC = () => {
         return;
       }
       setErrors({ general: err.message || "Failed to log in" });
-    } finally {
-      setIsLoading(false);
     }
   };
 

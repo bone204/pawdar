@@ -10,6 +10,11 @@ export interface PetResponseDto {
   description?: string | null;
   avatarUrl?: string | null;
   createdAt: string;
+  updatedAt: string;
+  breed?: {
+    id: string;
+    name: string;
+  } | null;
   gallery?: PetGalleryResponseDto[];
 }
 

@@ -12,7 +12,7 @@ import { LanguageSwitcher } from "@/presentation/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/presentation/components/ui/ThemeToggle";
 import { TextField } from "@/presentation/components/ui/TextField";
 import { Button } from "@/presentation/components/ui/Button";
-import { useVerifyEmailMutation, useResendEmailMutation } from "@/infrastructure/rtk/api/auth.api";
+import { useAuth } from "@/application/hooks/useAuth";
 import { useApiErrorService } from "@/application/services/api-error.service";
 import { AppLogo } from "@/presentation/components/ui/AppLogo";
 
@@ -62,9 +62,7 @@ export const VerifyEmailPage: React.FC = () => {
   }, [cooldown]);
 
   // ── RTK mutations ─────────────────────────────────────────────────────────
-  const [verifyEmail] = useVerifyEmailMutation();
-  const [resendEmail, { isLoading: isResending, error: resendError }] =
-    useResendEmailMutation();
+  const { verifyEmail, resendEmail, isResending, resendError } = useAuth();
   const { translateError } = useApiErrorService();
 
   // ── Resend form ───────────────────────────────────────────────────────────
@@ -95,7 +93,7 @@ export const VerifyEmailPage: React.FC = () => {
     if (!token || hasVerified.current) return;
     hasVerified.current = true;
     try {
-      await verifyEmail({ token }).unwrap();
+      await verifyEmail({ token });
       setVerifyState("success");
       
       // Notify other tabs that verification was successful
@@ -132,7 +130,7 @@ export const VerifyEmailPage: React.FC = () => {
     if (cooldown > 0 || isResending) return;
     setResendSuccessMsg("");
     try {
-      await resendEmail({ email: targetEmail }).unwrap();
+      await resendEmail({ email: targetEmail });
       setResendSuccessMsg(t("auth.verifyEmail.resendSuccess"));
       setCooldown(60);
     } catch (err: any) {

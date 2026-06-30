@@ -11,14 +11,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearAuthState, selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { AppSidebar, NavItem } from "@/presentation/components/sidebar/AppSidebar";
 import { HomeIcon, PawPrintIcon, UserIcon, LogOutIcon, TagIcon, GamepadIcon } from "@/presentation/components/ui/Icons";
-import { useGetPetByIdQuery } from "@/infrastructure/rtk/api/pet.api";
+import { usePetDetail } from "@/application/hooks/usePets";
 import { TextField } from "@/presentation/components/ui/TextField";
-import { useSearchUsersQuery, useAcceptFriendRequestMutation, useDeclineFriendRequestMutation, useGetReceivedFriendRequestsQuery, useGetFriendsQuery } from "@/infrastructure/rtk/api/user.api";
-import {
-  useGetNotificationsQuery,
-  useMarkAsReadMutation,
-  useMarkAllAsReadMutation,
-} from "@/infrastructure/rtk/api/notification.api";
+import { useUserSearch, useFriends, useFriendRequests, useUsers } from "@/application/hooks/useUsers";
+import { useNotifications } from "@/application/hooks/useNotifications";
 import { SocketProvider } from "@/presentation/providers/SocketProvider";
 import { authApi } from "@/infrastructure/rtk/api/auth.api";
 import { breedApi } from "@/infrastructure/rtk/api/breed.api";
@@ -49,22 +45,12 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const [recentSearches, setRecentSearches] = useState<{ id: string; fullName: string; avatarUrl: string | null; email?: string }[]>([]);
 
   // Fetch Notifications
-  const { data: notifications = [] } = useGetNotificationsQuery(undefined, {
-    skip: !user,
-  });
+  const { data: notifications = [], markAsRead, markAllAsRead } = useNotifications(!user);
 
-  const { data: receivedRequests = [] } = useGetReceivedFriendRequestsQuery(undefined, {
-    skip: !user,
-  });
+  const { received: receivedRequests = [] } = useFriendRequests();
 
-  const { data: friendsList } = useGetFriendsQuery({ limit: 100 }, {
-    skip: !user,
-  });
-
-  const [markAsRead] = useMarkAsReadMutation();
-  const [markAllAsRead] = useMarkAllAsReadMutation();
-  const [acceptFriendRequest] = useAcceptFriendRequestMutation();
-  const [declineFriendRequest] = useDeclineFriendRequestMutation();
+  const { data: friendsList } = useFriends({ limit: 100 });
+  const { acceptFriendRequest, declineFriendRequest } = useUsers();
 
   const friends = friendsList?.items || [];
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -113,9 +99,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  const { data: searchUsersResult, isFetching: isSearching } = useSearchUsersQuery(
+  const { data: searchUsersResult, isLoading: isSearching } = useUserSearch(
     debouncedQuery,
-    { skip: !debouncedQuery.trim() }
+    !debouncedQuery.trim()
   );
 
   useEffect(() => {
@@ -198,9 +184,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   // Check if current route is a pet detail page
   const petIdMatch = pathname.match(/^\/my-pets\/([^/]+)$/i);
   const activePetId = petIdMatch ? petIdMatch[1] : "";
-  const { data: activePet } = useGetPetByIdQuery(activePetId, {
-    skip: !activePetId,
-  });
+  const { data: activePet } = usePetDetail(activePetId, !activePetId);
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden transition-colors duration-300">

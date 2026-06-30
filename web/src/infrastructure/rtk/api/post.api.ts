@@ -132,7 +132,7 @@ const transformError = (response: any) => {
 export const postApi = createApi({
   reducerPath: "postApi",
   baseQuery: baseQueryWithAuth,
-  tagTypes: ["Post", "Comment"],
+  tagTypes: ["Post", "Comment", "Reaction"],
   endpoints: (builder) => ({
     getApprovedPosts: builder.query<PaginatedPostResponseDto, GetPostsQueryDto>({
       query: (params) => ({
@@ -227,6 +227,10 @@ export const postApi = createApi({
         method: "POST",
         body: { type },
       }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Post", id },
+        { type: "Reaction", id: `LIST_${id}` },
+      ],
       transformResponse: (response: ApiSuccessResponse<{ reacted: boolean; type: string | null }>) => response.data,
       transformErrorResponse: transformError,
     }),
@@ -237,6 +241,9 @@ export const postApi = createApi({
         method: "GET",
         params,
       }),
+      providesTags: (result, error, { postId }) => [
+        { type: "Reaction", id: `LIST_${postId}` },
+      ],
       transformResponse: (response: ApiSuccessResponse<PaginatedReactionResponseDto>) => response.data,
       transformErrorResponse: transformError,
     }),

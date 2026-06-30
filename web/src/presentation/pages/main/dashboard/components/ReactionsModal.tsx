@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Modal } from "@/presentation/components/ui/Modal";
-import { useGetPostReactionsQuery } from "@/infrastructure/rtk/api/post.api";
+import { usePostReactions } from "@/application/hooks/usePosts";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 
 interface ReactionsModalProps {
@@ -32,14 +32,14 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   const [activeTab, setActiveTab] = useState<string>("ALL");
   const [page, setPage] = useState<number>(1);
 
-  const { data, isLoading } = useGetPostReactionsQuery(
+  const { data, isLoading } = usePostReactions(
+    postId,
     {
-      postId,
       type: activeTab === "ALL" ? undefined : activeTab,
       page,
       limit: 50,
     },
-    { skip: !isOpen }
+    !isOpen
   );
 
   const tabs = [

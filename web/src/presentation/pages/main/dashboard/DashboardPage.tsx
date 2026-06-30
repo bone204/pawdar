@@ -7,11 +7,8 @@ import { selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { Button } from "@/presentation/components/ui/Button";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
-import {
-  useGetApprovedPostsQuery,
-  useDeletePostMutation,
-  type PostResponseDto,
-} from "@/infrastructure/rtk/api/post.api";
+import { useApprovedPosts, usePosts } from "@/application/hooks/usePosts";
+import { PostEntity } from "@/domain/entities/post.entity";
 import { PostCard } from "./components/PostCard";
 import { PostFormModal } from "./components/PostFormModal";
 import { Toast } from "@/presentation/pages/main/pets/MyPetsPage";
@@ -82,18 +79,18 @@ export const DashboardPage: React.FC = () => {
 
   // Modals / Dialogs / Toast states
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState<PostResponseDto | null>(null);
+  const [editingPost, setEditingPost] = useState<PostEntity | null>(null);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Fetch approved posts
-  const { data, isLoading, isFetching, isError } = useGetApprovedPostsQuery({
+  const { data, isLoading, isFetching, error: isError } = useApprovedPosts({
     page,
     limit,
     search: search || undefined,
   });
 
-  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
+  const { deletePost, isDeleting } = usePosts();
 
   // Reset page when search term changes
   useEffect(() => {
@@ -108,7 +105,7 @@ export const DashboardPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const _onEditPost = (post: PostResponseDto) => {
+  const _onEditPost = (post: PostEntity) => {
     setEditingPost(post);
     setIsFormOpen(true);
   };
@@ -120,7 +117,7 @@ export const DashboardPage: React.FC = () => {
   const _onConfirmDelete = async () => {
     if (!deletingPostId) return;
     try {
-      await deletePost(deletingPostId).unwrap();
+      await deletePost(deletingPostId);
       setDeletingPostId(null);
       _showToast(t("api.codes.delete_post_successful"));
     } catch (err) {

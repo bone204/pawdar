@@ -1,14 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "@/presentation/components/ui/Modal";
-import {
-  useGetPostCommentsQuery,
-  useCreatePostCommentMutation,
-  useDeletePostCommentMutation,
-  PostResponseDto,
-  PostCommentDto,
-  useReactToPostMutation,
-} from "@/infrastructure/rtk/api/post.api";
+import { PostEntity } from "@/domain/entities/post.entity";
+import { usePosts, usePostComments } from "@/application/hooks/usePosts";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { REACTION_MAP } from "./ReactionsModal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,7 +11,7 @@ import { ImageLightbox } from "./PostCard";
 interface CommentsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  post: PostResponseDto;
+  post: PostEntity;
   currentUser: any;
 }
 
@@ -57,14 +51,11 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   const [reactionsCount, setReactionsCount] = useState<number>(post.reactionsCount || 0);
   const [reactionStats, setReactionStats] = useState<Record<string, number>>(post.reactionStats || {});
 
-  const { data: commentsData, isLoading: isCommentsLoading } = useGetPostCommentsQuery(
-    { postId: post.id, limit: 100 },
-    { skip: !isOpen }
+  const { data: commentsData, isLoading: isCommentsLoading } = usePostComments(
+    post.id, { limit: 100 }, !isOpen
   );
 
-  const [createComment, { isLoading: isSubmitting }] = useCreatePostCommentMutation();
-  const [deleteComment] = useDeletePostCommentMutation();
-  const [reactToPost] = useReactToPostMutation();
+  const { createComment, deleteComment, reactToPost, isCommenting: isSubmitting } = usePosts();
 
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
@@ -103,7 +94,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
     }
 
     try {
-      await reactToPost({ id: post.id, type }).unwrap();
+      await reactToPost(post.id, type);
     } catch {
       setMyReaction(oldMyReaction);
       setReactionsCount(oldCount);
@@ -147,11 +138,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
     if (!commentText.trim() || isSubmitting) return;
 
     try {
-      await createComment({
-        postId: post.id,
-        content: commentText.trim(),
-        lang: locale,
-      }).unwrap();
+      await createComment(post.id, commentText.trim(), undefined, locale);
       setCommentText("");
       setTimeout(() => {
         commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -166,12 +153,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
     if (!replyText.trim() || isSubmitting) return;
 
     try {
-      await createComment({
-        postId: post.id,
-        content: replyText.trim(),
-        parentId,
-        lang: locale,
-      }).unwrap();
+      await createComment(post.id, replyText.trim(), parentId, locale);
       setReplyText("");
       setReplyingToId(null);
       setExpandedReplies((prev) => ({ ...prev, [parentId]: true }));
@@ -182,7 +164,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
   const handleDelete = async (commentId: string) => {
     try {
-      await deleteComment({ commentId, postId: post.id }).unwrap();
+      await deleteComment(commentId, post.id);
     } catch (err) {
       console.error("Failed to delete comment:", err);
     }
@@ -247,7 +229,6 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                 <div>
                   <h4 className="font-extrabold text-sm text-foreground flex items-center gap-1.5">
                     {post.user.fullName}
-                    <span className="w-1.5 h-1.5 rounded-full bg-success/80"></span>
                   </h4>
                   <span className="text-[10px] text-muted font-bold uppercase tracking-wider block mt-0.5">
                     {formatCommentTime(post.createdAt)}

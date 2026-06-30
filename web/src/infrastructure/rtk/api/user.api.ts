@@ -177,6 +177,16 @@ export const userApi = createApi({
       transformResponse: (response: ApiSuccessResponse<UserProfileDto[]>) => response.data,
       transformErrorResponse: transformError,
     }),
+
+    getUserStatus: builder.query<{ id: string; isOnline: boolean; lastActiveAt: string | null }, string>({
+      query: (id) => ({
+        url: `${API_ENDPOINTS.user.profile}/${id}/status`,
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "UserProfile", id }],
+      transformResponse: (response: ApiSuccessResponse<any>) => response.data,
+      transformErrorResponse: transformError,
+    }),
   }),
 });
 
@@ -192,4 +202,5 @@ export const {
   useGetReceivedFriendRequestsQuery,
   useGetSentFriendRequestsQuery,
   useSearchUsersQuery,
+  useGetUserStatusQuery,
 } = userApi;
