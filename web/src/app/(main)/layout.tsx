@@ -25,6 +25,7 @@ import { postApi } from "@/infrastructure/rtk/api/post.api";
 import { userApi } from "@/infrastructure/rtk/api/user.api";
 import { notificationApi } from "@/infrastructure/rtk/api/notification.api";
 import { gameApi } from "@/infrastructure/rtk/api/game.api";
+import { ChatWidgetContainer } from "@/presentation/components/chat/ChatWidgetContainer";
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
@@ -630,6 +631,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           )}
         </div>
       </div>
+      <ChatWidgetContainer />
     </div>
   );
 }

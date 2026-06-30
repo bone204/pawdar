@@ -527,5 +527,8 @@
       "mistakes": "Mistakes",
       "howToPlay": "How to play: Select an empty cell on the 9x9 grid, then select a number from 1 to 9 on the keyboard below to fill it in."
     }
+  },
+  "chat": {
+    "typeMessage": "Type a message..."
   }
 }

@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useMemo } from "react";
-import Link from "next/link";
+import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "@/presentation/providers/LanguageProvider";
 import { useFriends } from "@/application/hooks/useUsers";
+import { useCreateConversationMutation } from "@/infrastructure/rtk/api/chat.api";
+import { openChat } from "@/infrastructure/rtk/slices/chat.slice";
 import { APP_ROUTES } from "@/shared/constants/routes";
 import { FriendDto } from "@/application/dto/user.dto";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,8 +33,21 @@ function formatOfflineTime(lastActiveAt: string | null | undefined, t: any, loca
 }
 
 export function RightSidebar() {
+  const router = useRouter();
+  const dispatch = useDispatch();
   const { t, locale } = useTranslation();
   const { data, isLoading } = useFriends({ limit: 100 });
+  const [createConversation] = useCreateConversationMutation();
+
+  const handleFriendClick = async (friendId: string) => {
+    try {
+      const conv = await createConversation(friendId).unwrap();
+      dispatch(openChat(conv.id));
+    } catch (error) {
+      console.error("Failed to create/get conversation", error);
+      alert("Error: " + ((error as any)?.data?.message || (error as any)?.message || JSON.stringify(error)));
+    }
+  };
 
   // Lọc và sắp xếp bạn bè
   const sortedFriends = useMemo(() => {
@@ -109,9 +125,9 @@ export function RightSidebar() {
                       transition={{ duration: 0.2 }}
                       key={friend.id}
                     >
-                      <Link
-                        href={`/dashboard/profile/${friend.id}`}
-                        className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-secondary/40 transition-colors cursor-pointer group"
+                      <button
+                        onClick={() => handleFriendClick(friend.id)}
+                        className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-secondary/40 transition-colors cursor-pointer group text-left"
                       >
                         <div className="relative">
                           {/* Avatar */}
@@ -141,7 +157,7 @@ export function RightSidebar() {
                             </span>
                           )}
                         </div>
-                      </Link>
+                      </button>
                     </motion.div>
                   );
                 })}

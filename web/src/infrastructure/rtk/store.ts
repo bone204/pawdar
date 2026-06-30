@@ -11,6 +11,7 @@ import { notificationApi } from "@/infrastructure/rtk/api/notification.api";
 import { gameApi } from "@/infrastructure/rtk/api/game.api";
 import { chatApi } from "@/infrastructure/rtk/api/chat.api";
 import authReducer from "@/infrastructure/rtk/auth.slice";
+import chatUIReducer from "@/infrastructure/rtk/slices/chat.slice";
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     [gameApi.reducerPath]: gameApi.reducer,
     [chatApi.reducerPath]: chatApi.reducer,
     auth: authReducer,
+    chatUI: chatUIReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(

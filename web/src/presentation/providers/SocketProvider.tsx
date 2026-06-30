@@ -6,6 +6,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentUser } from "@/infrastructure/rtk/auth.slice";
 import { userApi } from "@/infrastructure/rtk/api/user.api";
 import { notificationApi } from "@/infrastructure/rtk/api/notification.api";
+import { chatApi } from "@/infrastructure/rtk/api/chat.api";
+import { openChat } from "@/infrastructure/rtk/slices/chat.slice";
 import { store, RootState, AppDispatch } from "@/infrastructure/rtk/store";
 import { env } from "@/shared/config/env";
 
@@ -107,6 +109,45 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           draft.lastActiveAt = data.lastActiveAt;
         })
       );
+    });
+
+    socketInstance.on("receive_message", (message) => {
+      console.log("💬 New Chat Message received:", message);
+      
+      // Update the messages cache
+      dispatch(
+        chatApi.util.updateQueryData(
+          "getMessages",
+          { conversationId: message.conversationId, params: { limit: 50 } },
+          (draft) => {
+            // Append message if not exists
+            if (!draft.data.find(m => m.id === message.id)) {
+              // Note: the backend returns oldest to newest or newest to oldest?
+              // The API reversed it so index 0 is oldest. Wait, if we used `unshift` or `push` depends on the array.
+              // We just push to the end if it's oldest first.
+              draft.data.push(message);
+            }
+          }
+        )
+      );
+
+      // Invalidate conversation list so preview updates
+      dispatch(chatApi.util.invalidateTags(["Conversation"]));
+
+      // Check if we are currently focused on this chat to mark it as read immediately
+      if (typeof window !== "undefined") {
+        const isChatPage = window.location.pathname === `/dashboard/chat/${message.conversationId}`;
+        const isFocused = document.hasFocus() && document.visibilityState === "visible";
+        
+        // Auto open the chat widget if it's not from us
+        if (message.senderId !== user?.id) {
+          dispatch(openChat(message.conversationId));
+        }
+
+        if (isChatPage && isFocused) {
+          dispatch(chatApi.endpoints.markAsRead.initiate(message.conversationId));
+        }
+      }
     });
 
     setSocket(socketInstance);

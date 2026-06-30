@@ -527,5 +527,8 @@
       "mistakes": "Lỗi",
       "howToPlay": "Cách chơi: Chọn một ô trống trên lưới 9x9, sau đó nhấn chọn số từ 1 đến 9 ở thanh công cụ phía dưới để điền số."
     }
+  },
+  "chat": {
+    "typeMessage": "Nhập tin nhắn..."
   }
 }

@@ -31,7 +31,6 @@ export const chatApi = createApi({
         method: "GET",
       }),
       providesTags: ["Conversation"],
-      transformResponse: (response: ApiSuccessResponse<ConversationDto[]>) => response.data,
       transformErrorResponse: transformError,
     }),
 
@@ -42,7 +41,6 @@ export const chatApi = createApi({
         body: { receiverId },
       }),
       invalidatesTags: ["Conversation"],
-      transformResponse: (response: ApiSuccessResponse<ConversationDto>) => response.data,
       transformErrorResponse: transformError,
     }),
 
@@ -53,8 +51,6 @@ export const chatApi = createApi({
         params,
       }),
       providesTags: (result, error, arg) => [{ type: "Message", id: arg.conversationId }],
-      // Transform directly returning the structure { data, meta }
-      transformResponse: (response: ApiSuccessResponse<PaginatedMessagesResponseDto>) => response.data,
       transformErrorResponse: transformError,
     }),
 
@@ -68,7 +64,6 @@ export const chatApi = createApi({
         { type: "Message", id: arg.conversationId },
         "Conversation",
       ],
-      transformResponse: (response: ApiSuccessResponse<ChatMessageDto>) => response.data,
       transformErrorResponse: transformError,
     }),
 
@@ -79,7 +74,6 @@ export const chatApi = createApi({
         body,
       }),
       invalidatesTags: ["Message"],
-      transformResponse: (response: ApiSuccessResponse<ChatMessageDto>) => response.data,
       transformErrorResponse: transformError,
     }),
 
@@ -89,7 +83,6 @@ export const chatApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["Message"],
-      transformResponse: (response: ApiSuccessResponse<ChatMessageDto>) => response.data,
       transformErrorResponse: transformError,
     }),
 
@@ -99,7 +92,6 @@ export const chatApi = createApi({
         method: "PUT",
       }),
       invalidatesTags: ["Conversation"],
-      transformResponse: (response: ApiSuccessResponse<any>) => response.data,
       transformErrorResponse: transformError,
     }),
   }),
